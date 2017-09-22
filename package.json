@@ -7,13 +7,17 @@
   },
   "dependencies": {
     "body-parser": "~1.17.1",
+    "collections": "^5.0.7",
     "cookie-parser": "~1.4.3",
+    "crypto": "^1.0.1",
     "debug": "~2.6.3",
     "express": "~4.15.2",
     "express-ws": "^3.0.0",
     "morgan": "~1.8.1",
     "pug": "~2.0.0-beta11",
-    "serve-favicon": "~2.4.2"
+    "serve-favicon": "~2.4.2",
+    "winston": "^2.3.1",
+    "ws": "^3.2.0"
   },
   "devDependencies": {
     "assets-webpack-plugin": "^3.5.1",
