@@ -26,6 +26,8 @@ class CexConnector extends Connector {
 
     };
 
+    this.synced = false;
+
     this.ws = new WebSocket(CEX_WS_URL);
     this.ws.on('message', data => this.__onMessage(data));
     this.ws.on('open', () => this.__auth());
@@ -36,11 +38,15 @@ class CexConnector extends Connector {
     this.book.sellSide = new SortedMap(data.data.asks);
     this.book.ts = data.data.timestamp;
     this.book.id = null;
+    this.synced = true;
     this.__showBook()
 
   }
 
   __updateSide(side, data) {
+    if (!this.synced)
+      return null;
+
     const newSide = side.clone();
     data.forEach(([price, amount]) => {
       if (amount === 0)
@@ -50,6 +56,7 @@ class CexConnector extends Connector {
     });
 
     if (newSide.length < this.depth) {
+      this.synced = false;
       this.__orderBookSubscribe();
       return null;
     }
@@ -64,30 +71,27 @@ class CexConnector extends Connector {
   }
 
   __updateBook(data) {
-    const newBuySide = this.__updateSide(this.book.buySide, data.data.bids);
-    const newSellSide = this.__updateSide(this.book.sellSide, data.data.asks);
-    if (!newBuySide || !newSellSide) {
-      return;
-    }
-
-    this.book.buySide = newBuySide;
-    this.book.sellSide = newSellSide;
-
+    this.book.buySide = this.__updateSide(this.book.buySide, data.data.bids);
+    this.book.sellSide = this.__updateSide(this.book.sellSide, data.data.asks);
     this.book.ts = data.data.time;
     this.__showBook()
   }
 
 
   __showBook() {
+    if (!this.synced) {
+      logger.info('desync');
+      return;
+    }
+
+
     const asks = this.book.sellSide.entries().map(([price, amount]) => `${price} = ${amount}`);
-    const maxAsksLength = asks.map(ask => ask.length).sort()[asks.length - 1];
+    const maxAsksLength = asks.map(ask => ask.length).slice(0, this.depth).sort()[this.depth - 1];
     const bids = this.book.buySide.entries().map(([price, amount]) => `${price} = ${amount}`);
 
     let s = '\n';
-    for (let i = 0; i < Math.max(asks.length, bids.length); i++) {
-      const ask = asks[i] || '';
-      const bid = bids[i] || '';
-      const l = ask + ' '.repeat(maxAsksLength - ask.length + 4) + bid + '\n';
+    for (let i = 0; i < this.depth; i++) {
+      const l = asks[i] + ' '.repeat(maxAsksLength - asks[i].length + 4) + bids[i] + '\n';
       s += l;
     }
     logger.info(s);
@@ -100,8 +104,8 @@ class CexConnector extends Connector {
     return hmac.digest('hex');
   }
 
-  __getOid() {
-    return `${Date.now()}_${this.requestId}`;
+  __getOid(receiver) {
+    return `${Date.now()}_${this.requestId}_${receiver}`;
   }
 
   __sendRequest(data) {
@@ -129,20 +133,25 @@ class CexConnector extends Connector {
     this.__sendRequest({
       e: 'order-book-subscribe',
       data: {
-      pair: [
-            'BTC',
-            'USD'
-            ],
-            subscribe: true,
-            depth: this.realDepth
+        pair: ['BTC', 'USD'],
+        subscribe: true,
+        depth: this.realDepth
       },
-      oid: this.__getOid()
+      oid: this.__getOid('order-book-subscribe')
+    });
+  }
+
+  __orderBookUnsubscribe() {
+    this.__sendRequest({
+      e: 'order-book-unsubscribe',
+      data: {pair: ['BTC', 'USD']},
+      oid: this.__getOid('order-book-subscribe')
     });
   }
 
   __onMessage(message) {
     const data = JSON.parse(message);
-    // logger.info(message);
+    logger.info(message);
 
     switch(data.e) {
       case 'ping': return this.__onPing();
