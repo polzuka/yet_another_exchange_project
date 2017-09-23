@@ -57,7 +57,7 @@ class CexConnector extends Connector {
 
     if (newSide.length < this.depth) {
       this.synced = false;
-      this.__orderBookSubscribe();
+      this.__orderBookUnsubscribe();
       return null;
     }
 
@@ -84,9 +84,9 @@ class CexConnector extends Connector {
       return;
     }
 
-
     const asks = this.book.sellSide.entries().map(([price, amount]) => `${price} = ${amount}`);
-    const maxAsksLength = asks.map(ask => ask.length).slice(0, this.depth).sort()[this.depth - 1];
+    const maxAsksLength = asks.map(ask => ask.length).slice(0, this.depth).sort((a, b) => a - b)[this.depth - 1];
+
     const bids = this.book.buySide.entries().map(([price, amount]) => `${price} = ${amount}`);
 
     let s = '\n';
@@ -157,6 +157,7 @@ class CexConnector extends Connector {
       case 'ping': return this.__onPing();
       case 'auth': return this.__onAuthenticated();
       case 'order-book-subscribe': return this.__onOrderBookSubscribed(data);
+      case 'order-book-unsubscribe': return this.__onOrderBookUnsubscribe(data);
       case 'md_update': return this.__onOrderBookUpdated(data);
       default: logger.info(data);
     }
@@ -179,6 +180,10 @@ class CexConnector extends Connector {
   __onOrderBookSubscribed(data) {
     this.__initBook(data);
     this.emit('something_event')
+  }
+
+  __onOrderBookUnsubscribe() {
+    this.__orderBookSubscribe();
   }
 
   __onOrderBookUpdated(data) {
