@@ -1,19 +1,20 @@
 'use strict';
 
-const CexConnector = require('./cex_connector');
-
+const CexConnector = require('./cex');
+const BitfinexConnector = require('./bitfinex');
 
 class Connectors {
 
-  getConstructor(type) {
+  __getConstructor(type) {
     switch (type) {
       case 'CEX': return CexConnector;
+      case 'BITFINEX': return BitfinexConnector;
       default: throw new Error(`Unknown connector type '${type}'`);
     }
   }
 
   create(type, pair, apiKey, apiSecret, depth) {
-    const connectorConstructor = this.getConstructor(type);
+    const connectorConstructor = this.__getConstructor(type);
     const connector = new connectorConstructor(pair, apiKey, apiSecret, depth);
     return new Promise(resolve => {
       const onSynced = () => {

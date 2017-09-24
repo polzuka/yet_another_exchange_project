@@ -21,16 +21,6 @@ class CexConnector extends Connector {
     this.maxDepth = Math.round(this.depth * 1.1);
     this.requestId = 0;
 
-    // Стакан
-    this.book = {
-      pair: this.pair.join(''),
-      buySide: null,
-      sellSide: null,
-      dt: null,
-      id: null
-
-    };
-
     // Флаг показывающий, актуален ли стакан у коннектора
     this.synced = false;
   }
@@ -116,22 +106,6 @@ class CexConnector extends Connector {
     this.emit('synced');
   }
 
-
-  __showBook() {
-    const asks = this.book.sellSide.entries().map(([price, amount]) => `${price} = ${amount}`);
-    const maxAsksLength = asks.map(ask => ask.length).slice(0, this.depth).sort((a, b) => a - b)[this.depth - 1];
-
-    const bids = this.book.buySide.entries().map(([price, amount]) => `${price} = ${amount}`);
-
-    let s = '\n';
-    for (let i = 0; i < this.depth; i++) {
-      const l = asks[i] + ' '.repeat(maxAsksLength - asks[i].length + 4) + bids[i] + '\n';
-      s += l;
-    }
-    logger.debug(s);
-  }
-
-
   __createSignature(timestamp, apiKey, apiSecret) {
     const hmac = crypto.createHmac('sha256', apiSecret);
     hmac.update(timestamp + apiKey);
@@ -139,6 +113,7 @@ class CexConnector extends Connector {
   }
 
   __getOid(receiver) {
+    this.requestId++;
     return `${Date.now()}_${this.requestId}_${receiver}`;
   }
 
@@ -280,7 +255,7 @@ class CexConnector extends Connector {
     this.emit('something_event')
   }
 
-  __normalizeTradeInfo([side, ts, amount, price, tid]) {
+  __normalizeTradeInfo([side, ts, amount, price, ]) {
     return {
       side: side.toUpperCase(),
       dt: parseInt(ts, 10), 
