@@ -1,0 +1,1 @@
+ALTER TABLE trades RENAME exchange TO mic;

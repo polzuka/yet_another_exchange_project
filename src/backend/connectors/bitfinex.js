@@ -19,10 +19,8 @@ class BitfinexConnector extends Connector {
     // Поэтому реальная глубина стакана будет depth <= realDepth <= maxDepth
     this.maxDepth = Math.round(this.depth * 1.1);
 
-    
-
     // Флаг показывающий, актуален ли стакан у коннектора
-    this.synced = false;
+    this.isSynchronized = false;
 
     this.tradesChanId = null;
     this.bookChanId = null;
@@ -32,9 +30,12 @@ class BitfinexConnector extends Connector {
    * Коннектимся к сокету.
    */
   init() {
+    logger.info('Connecting to socket');
     this.ws = new WebSocket(BITFINEX_WS_URL);
     this.ws.on('message', data => this.__onMessage(data));
     this.ws.on('open', () => this.__onSocketOpen());
+    this.ws.on('error', error => this.__onSocketError(error));
+    this.ws.on('close', event => this.__onSocketClose(event));
   }
 
   __sendRequest(data) {
@@ -44,6 +45,16 @@ class BitfinexConnector extends Connector {
   __onSocketOpen() {
     this.__bookSubscribe();
     this.__tradesSubscribe();
+  }
+
+  __onSocketError(error) {
+    logger.error(error);
+  }
+
+  __onSocketClose(event) {
+    logger.warn(event);
+    this.isSynchronized = false;
+    this.init();
   }
 
   __onMessage(message) {
@@ -61,7 +72,7 @@ class BitfinexConnector extends Connector {
     this.__sendRequest({
       event: 'subscribe',
       channel: 'trades', 
-      symbol: `t${this.pair.join('')}` 
+      symbol: `t${this.pair}` 
     });
   }
 
@@ -69,7 +80,7 @@ class BitfinexConnector extends Connector {
     this.__sendRequest({
       event: 'subscribe',
       channel: 'book', 
-      symbol: `t${this.pair.join('')}`,
+      symbol: `t${this.pair}`,
       prec: 'P0',
       freq: 'F0',
       len: this.realDepth
@@ -125,7 +136,8 @@ class BitfinexConnector extends Connector {
 
     });
     this.book.ts = Date.now();
-    this.emit('synced');
+    this.isSynchronized = true;
+    this.emit('synchronized');
     this.__showBook();
   }
 
@@ -148,20 +160,34 @@ class BitfinexConnector extends Connector {
 
   __normalizeTradeInfo([, mts, amount, price]) {
     return {
+      mic: this.constructor.mic,
+      pair: this.pair,
       side: amount > 0 ? 'BUY' : 'SELL',
-      dt: mts, 
+      ts: mts, 
       amount: amount,
       price: price
     }
   }
 
-  __onTradesData(data) {
+  async __onTradesData(data) {
     const [, event, trade] = data;
     switch (event) {
       case 'hb': return;
-      case 'te': return this.emit('trade', this.__normalizeTradeInfo(trade));
+      case 'te': 
+        return this.emit('trade', this.__normalizeTradeInfo(trade));
     }
   }
+
+
+  getBook() {
+    return new Promise(resolve => {
+      if (this.isSynchronized)
+        return resolve(this.__normalizeBookInfo(this.book));
+      this.once('synchronized', () => resolve(this.__normalizeBookInfo(this.book)));
+    });
+  }
 }
+
+BitfinexConnector.mic = 'BITFINEX';
 
 module.exports = BitfinexConnector;

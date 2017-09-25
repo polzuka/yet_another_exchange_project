@@ -1,0 +1,1 @@
+ALTER TABLE trades ALTER dt SET DEFAULT now();

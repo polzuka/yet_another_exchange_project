@@ -1,0 +1,11 @@
+{
+  "dev": {
+    "driver": "pg",
+    "user": "yaep",
+    "password": "yaep",
+    "host": "localhost",
+    "database": "yaep",
+    "schema": "public"
+  },
+  "sql-file": true
+}

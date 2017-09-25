@@ -9,14 +9,18 @@ const logger = ConnectorLoggingContainer.add('connector');
 class Connector extends EventEmitter {
   constructor(pair, apiKey, apiSecret, depth) {
     super();
-    this.pair = [pair.substr(0, 3), pair.substr(3)];
+
+    if (this.constructor.mic === undefined)
+      throw new Error('!!!!!');
+
+    this.pair = pair, 
+    this.splittedPair = [pair.substr(0, 3), pair.substr(3)];
     this.apiKey = apiKey;
     this.apiSecret = apiSecret;
     this.depth = depth;
 
     // Стакан
     this.book = {
-      pair: this.pair.join(''),
       buySide: null,
       sellSide: null,
       dt: null
@@ -32,6 +36,16 @@ class Connector extends EventEmitter {
     for (let i = 0; i < this.depth; i++)
       s += asks[i] + ' '.repeat(maxAsksLength - (asks[i] || '').length + 4) + bids[i] + '\n';
     logger.debug(s);
+  }
+
+  __normalizeBookInfo(book) {
+    return {
+      buySide: book.buySide.toJSON(),
+      sellSide: book.sellSide.toJSON(),
+      ts: book.ts,
+      pair: this.pair,
+      mic: this.constructor.mic
+    }
   }
 }
 

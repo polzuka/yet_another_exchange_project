@@ -5,23 +5,19 @@ const BitfinexConnector = require('./bitfinex');
 
 class Connectors {
 
-  __getConstructor(type) {
-    switch (type) {
-      case 'CEX': return CexConnector;
+  __getConstructor(mic) {
+    switch (mic) {
+      case 'CEXIO': return CexConnector;
       case 'BITFINEX': return BitfinexConnector;
-      default: throw new Error(`Unknown connector type '${type}'`);
+      default: throw new Error(`Unknown connector mic '${mic}'`);
     }
   }
 
-  create(type, pair, apiKey, apiSecret, depth) {
-    const connectorConstructor = this.__getConstructor(type);
+  create(mic, pair, apiKey, apiSecret, depth) {
+    const connectorConstructor = this.__getConstructor(mic);
     const connector = new connectorConstructor(pair, apiKey, apiSecret, depth);
-    return new Promise(resolve => {
-      const onSynced = () => {
-        connector.removeListener('synced', onSynced);
-        return resolve(connector);
-      }
-      connector.on('synced', onSynced);
+    return new Promise(resolve => {      
+      connector.once('synchronized', () => resolve(connector));
       connector.init();
     });
   }

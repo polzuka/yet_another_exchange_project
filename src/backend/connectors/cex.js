@@ -22,21 +22,28 @@ class CexConnector extends Connector {
     this.requestId = 0;
 
     // Флаг показывающий, актуален ли стакан у коннектора
-    this.synced = false;
+    this.isSynchronized = false;
   }
 
   /**
    * Коннектимся к сокету.
    */
   init() {
+    logger.info('Connecting to websocket');
     this.ws = new WebSocket(CEX_WS_URL);
     this.ws.on('message', data => this.__onMessage(data));
     this.ws.on('open', () => this.__auth());
+    this.ws.on('error', error => logger.error(error))
+  }
+
+  __onSynchronized() {
+    this.isSynchronized = true;
+    this.emit('synchronized');
   }
 
   /**
    * Проинициализировать стакан данными с биржи.
-   * После инициализации synced = true.
+   * После инициализации isSynchronized = true.
    *
    * @param data {Object} данные с биржи в формате {data: {timestamp, bids: [[price, amount][,...]], asks: [[price, amount][,...]]}}
    * @returns {undefined}
@@ -46,7 +53,7 @@ class CexConnector extends Connector {
     this.book.sellSide = new SortedMap(data.data.asks);
     this.book.ts = data.data.timestamp;
     this.book.id = data.data.id;
-    this.synced = true;
+    this.__onSynchronized();
     this.__showBook()
   }
 
@@ -102,8 +109,8 @@ class CexConnector extends Connector {
     this.book.sellSide = newSellSide;
     this.book.ts = data.data.time;
     this.book.id = data.data.id;
+    this.__onSynchronized();
     this.__showBook();
-    this.emit('synced');
   }
 
   __createSignature(timestamp, apiKey, apiSecret) {
@@ -152,7 +159,7 @@ class CexConnector extends Connector {
     this.__sendRequest({
       e: 'order-book-subscribe',
       data: {
-        pair: this.pair,
+        pair: this.splittedPair,
         subscribe: true,
         depth: this.maxDepth
       },
@@ -165,10 +172,10 @@ class CexConnector extends Connector {
    */
   __orderBookUnsubscribe() {
     logger.debug('Unsubscribe to book update.')
-    this.synced = false;
+    this.isSynchronized = false;
     this.__sendRequest({
       e: 'order-book-unsubscribe',
-      data: {pair: this.pair},
+      data: {pair: this.splittedPair},
       oid: this.__getOid('order-book-subscribe')
     });
   }
@@ -180,7 +187,7 @@ class CexConnector extends Connector {
   __pairRoomSubscribe() {
     this.__sendRequest({
       e: 'subscribe',
-      rooms: [`pair-${this.pair.join('-')}`]
+      rooms: [`pair-${this.splittedPair.join('-')}`]
     });
   }
 
@@ -249,7 +256,7 @@ class CexConnector extends Connector {
    * Обновим стакан.
    */
   __onOrderBookUpdated(data) {
-    if (!this.synced)
+    if (!this.isSynchronized)
       return;
     this.__updateBook(data);
     this.emit('something_event')
@@ -257,19 +264,31 @@ class CexConnector extends Connector {
 
   __normalizeTradeInfo([side, ts, amount, price, ]) {
     return {
+      mic: this.constructor.mic,
+      pair: this.pair,
       side: side.toUpperCase(),
-      dt: parseInt(ts, 10), 
+      ts: parseInt(ts, 10), 
       amount: Number(amount) / 1e8,
       price: Number(price)
     }
   }
 
 
-  __onHistoryUpdate(data) {
+  async __onHistoryUpdate(data) {
     data.data.forEach(trade => {
-      this.emit('trade', this.__normalizeTradeInfo(trade));
+      this.emit('trade',  this.__normalizeTradeInfo(trade));
+    });
+  }
+
+  getBook() {
+    return new Promise(resolve => {
+      if (this.isSynchronized)
+        return resolve(this.__normalizeBookInfo(this.book));
+      this.once('synchronized', () => resolve(this.__normalizeBookInfo(this.book)));
     });
   }
 }
+
+CexConnector.mic = 'CEXIO';
 
 module.exports = CexConnector;
