@@ -1,0 +1,1 @@
+ALTER TABLE trades ALTER batch_id TYPE bigint;

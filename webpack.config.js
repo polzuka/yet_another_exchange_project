@@ -8,12 +8,12 @@ const path = require('path');
 const rimraf = require('rimraf');
 
 module.exports = {
-  context: path.join(__dirname, 'src/public'),
+  context: path.join(__dirname, 'src/web/public'),
   entry: {
     main: './javascripts/main',
   },
   output: {
-    path: path.join(__dirname, 'build/public'),
+    path: path.join(__dirname, 'build/web/public'),
     filename: 'javascripts/[name].[chunkhash].js',
   },
   module: {
@@ -41,7 +41,7 @@ module.exports = {
     new ExtractTextPlugin('stylesheets/[name].[chunkhash].css'),
     new AssetsPlugin({
       filename: 'assets.json',
-      path: path.join(__dirname, 'build/public'),
+      path: path.join(__dirname, 'build/web/public'),
       prettyPrint: true
     }),
     new UglifyJsPlugin(),

@@ -7,158 +7,116 @@ require('../stylesheets/main.css');
 
 function createChart() {
   return AmCharts.makeChart( "chartdiv", {
-    "type": "stock",
+    "type": "serial",
+    "categoryField": "date",
+    "autoMarginOffset": 40,
+    "marginRight": 60,
+    "marginTop": 60,
+    "fontSize": 12,
     "theme": "light",
-    "dataSets": [ {
-      "fieldMappings": [ {
-        "fromField": "open",
-        "toField": "open"
-      }, {
-        "fromField": "close",
-        "toField": "close"
-      }, {
-        "fromField": "high",
-        "toField": "high"
-      }, {
-        "fromField": "low",
-        "toField": "low"
-      }, {
-        "fromField": "volume",
-        "toField": "volume"
-      }, {
-        "fromField": "value",
-        "toField": "value"
-      } ],
-      "color": "#7f8da9",
-      "dataProvider": [],
-      "title": "West Stock",
-      "categoryField": "date"
-    }, {
-      "fieldMappings": [ {
-        "fromField": "value",
-        "toField": "value"
-      } ],
-      "color": "#fac314",
-      "dataProvider": [],
-      "compared": true,
-      "title": "East Stock",
-      "categoryField": "date"
-    } ],
-
-
-    "panels": [ {
-        "title": "Value",
-        "showCategoryAxis": false,
-        "percentHeight": 70,
-        "valueAxes": [ {
-          "id": "v1",
-          "dashLength": 5
-        } ],
-
-        "categoryAxis": {
-          "dashLength": 5
-        },
-
-        "stockGraphs": [ {
-          "type": "candlestick",
-          "id": "g1",
-          "openField": "open",
-          "closeField": "close",
-          "highField": "high",
-          "lowField": "low",
-          "valueField": "close",
-          "lineColor": "#7f8da9",
-          "fillColors": "#7f8da9",
-          "negativeLineColor": "#db4c3c",
-          "negativeFillColors": "#db4c3c",
-          "fillAlphas": 1,
-          "useDataSetColors": false,
-          "comparable": true,
-          "compareField": "value",
-          "showBalloon": false,
-          "proCandlesticks": true
-        } ],
-
-        "stockLegend": {
-          "valueTextRegular": undefined,
-          "periodValueTextComparing": "[[percents.value.close]]%"
-        }
-      },
-
-      {
-        "title": "Volume",
-        "percentHeight": 30,
-        "marginTop": 1,
-        "showCategoryAxis": true,
-        "valueAxes": [ {
-          "dashLength": 5
-        } ],
-
-        "categoryAxis": {
-          "dashLength": 5
-        },
-
-        "stockGraphs": [ {
-          "valueField": "volume",
-          "type": "column",
-          "showBalloon": false,
-          "fillAlphas": 1
-        } ],
-
-        "stockLegend": {
-          "markerType": "none",
-          "markerSize": 0,
-          "labelText": "",
-          "periodValueTextRegular": "[[value.close]]"
-        }
-      }
-    ],
-
-    "chartScrollbarSettings": {
+    "categoryAxis": {
+      "parseDates": true, 
+      minPeriod: 'ss'
+    },
+    "chartCursor": {
+      "enabled": true,
+      // valueLineBalloonEnabled: true,
+      //   valueLineEnabled: true
+    },
+    "chartScrollbar": {
+      "enabled": true,
       "graph": "g1",
       "graphType": "line",
-      "usePeriod": "WW"
+      "scrollbarHeight": 30,
+      usePeriod: "mm"
     },
-
-    "chartCursorSettings": {
-      "valueLineBalloonEnabled": true,
-      "valueLineEnabled": true
-    },
-
-    "periodSelector": {
-      "position": "bottom",
-      "periods": [ {
-        "period": "DD",
-        "count": 10,
-        "label": "10 days"
+    "trendLines": [],
+    "graphs": [
+      {
+        "balloonText": "Open:<b>[[open]]</b><br>Low:<b>[[low]]</b><br>High:<b>[[high]]</b><br>Close:<b>[[close]]</b><br>",
+        id: 'g1',
+        valueField: 'price1',
+        type: 'line',
+        showBalloon: false,
+        fillAlphas: 0,
+        lineThickness: 2,
+        bullet: 'round',
+        bulletColor: 'red',
+        bulletSizeField: 'bulletSize1',
+        // "useDataSetColors": true,
+      },
+      {
+        "balloonText": "Open:<b>[[open]]</b><br>Low:<b>[[low]]</b><br>High:<b>[[high]]</b><br>Close:<b>[[close]]</b><br>",
+        id: 'g2',
+        valueField: 'price2',
+        type: 'line',
+        showBalloon: false,
+        fillAlphas: 0,
+        lineThickness: 2,
+        bullet: 'round',
+        bulletColor: 'green',
+        bulletSizeField: 'bulletSize2',
+        // "useDataSetColors": true,
+      }
+    ],
+    "guides": [
+      {
+        "id": "Guide-1"
+      },
+      {
+        "id": "Guide-2"
+      }
+    ],
+    "valueAxes": [
+      {
+        "id": "ValueAxis-1"
+      }
+    ],
+    periodSelector: {
+      position: "bottom",
+      periods: [ {
+        period: "ss",
+        count: 1,
+        label: "1 sec"
       }, {
-        "period": "MM",
-        "selected": true,
-        "count": 1,
-        "label": "1 month"
+        period: "ss",
+        count: 100,
+        label: "100 sec"
       }, {
-        "period": "YYYY",
-        "count": 1,
-        "label": "1 year"
+        period: "DD",
+        count: 10,
+        label: "10 days"
       }, {
-        "period": "YTD",
-        "label": "YTD"
+        period: "MM",
+        selected: true,
+        count: 1,
+        label: "1 month"
       }, {
-        "period": "MAX",
-        "label": "MAX"
+        period: "YYYY",
+        count: 1,
+        label: "1 year"
+      }, {
+        period: "YTD",
+        label: "YTD"
+      }, {
+        period: "MAX",
+        label: "MAX"
       } ]
     },
-    "export": {
-      "enabled": true
-    }
+    "allLabels": [],
+    "balloon": {},
+    "titles": [],
+    "dataProvider": []
   } );
 }
 
 const chart = createChart();
 let nonce;
+let batchId;
 
 function updateChart(data) {
-  chart.dataSets.forEach(dataSet => dataSet.dataProvider = dataSet.dataProvider.concat(data));
+  data.forEach((trade) => chart.dataProvider.push(trade));
+  // chart.dataProvider = chart.dataProvider.concat(d []ata);
   chart.validateData();
 }
 
@@ -173,7 +131,8 @@ function start() {
     setInterval(() => {
       const updateRequestObject = {
         type: 'update',
-        nonce
+        nonce,
+        batchId
       };
 
       ws.send(JSON.stringify(updateRequestObject));
@@ -184,16 +143,15 @@ function start() {
     const data = JSON.parse(event.data);
     updateChart(data.chartData);
     nonce = data.nonce;
+    batchId = data.batchId;
   };
 
-  ws.onclose = event => setTimeout(start, 1000);
+  ws.onclose = () => setTimeout(start, 1000);
 
   ws.onerror = event => {
     console.log(event);
-    setTimeout(start, 1000);
   };
-};
+}
 
 start();
-
 

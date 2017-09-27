@@ -1,22 +1,22 @@
 'use strict';
 
 const express = require('express');
-const {generateHistoryData, generateUpdateData} = require('../data/generate');
+const {getHistoryData, getUpdateData} = require('../data/real');
 const router = express.Router();
 
-function getData(requestObject) {
+async function getData(requestObject) {
   switch (requestObject.type) {
-    case 'history': return generateHistoryData();
-    case 'update': return generateUpdateData(requestObject.nonce);
-    default: throw new Error(`Unknown type '${type}'.`);
+    case 'history': return await getHistoryData();
+    case 'update': return await getUpdateData(requestObject.batchId, requestObject.nonce);
+    default: throw new Error(`Unknown type '${requestObject}'.`);
   }
 }
 
 /* GET data. */
 router.ws('/data', (ws, req) => {
-  ws.on('message', msg => {
+  ws.on('message', async msg => {
     const requestObject = JSON.parse(msg);
-    const data = getData(requestObject);
+    const data = await getData(requestObject);
     ws.send(JSON.stringify(data));
   });
 });

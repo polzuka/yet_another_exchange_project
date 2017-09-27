@@ -1,4 +1,5 @@
 module.exports = {
+    "parser": "babel-eslint",
     "env": {
         "es6": true,
         "node": true
@@ -10,7 +11,7 @@ module.exports = {
         "array-bracket-spacing": "off",
         "array-callback-return": "off",
         "array-element-newline": "off",
-        "arrow-body-style": "error",
+        "arrow-body-style": "off",
         "arrow-parens": [
             "error",
             "as-needed"
