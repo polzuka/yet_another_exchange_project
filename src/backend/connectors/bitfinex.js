@@ -30,7 +30,7 @@ class BitfinexConnector extends Connector {
    * Коннектимся к сокету.
    */
   init() {
-    logger.info('Connecting to socket');
+    logger.info('Connecting to websocket.');
     this.ws = new WebSocket(BITFINEX_WS_URL);
     this.ws.on('message', data => this.__onMessage(data));
     this.ws.on('open', () => this.__onSocketOpen());
@@ -164,12 +164,12 @@ class BitfinexConnector extends Connector {
       pair: this.pair,
       side: amount > 0 ? 'BUY' : 'SELL',
       ts: mts, 
-      amount: amount,
+      amount: amount > 0 ? amount : -amount,
       price: price
-    }
+    };
   }
 
-  async __onTradesData(data) {
+  __onTradesData(data) {
     const [, event, trade] = data;
     switch (event) {
       case 'hb': return;

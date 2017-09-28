@@ -2,6 +2,10 @@
 
 const CexConnector = require('./cex');
 const BitfinexConnector = require('./bitfinex');
+const ConnectorLoggingContainer = require('../logger');
+
+const logger = ConnectorLoggingContainer.add('connectors');
+
 
 class Connectors {
 
@@ -18,7 +22,7 @@ class Connectors {
     const connector = new connectorConstructor(pair, apiKey, apiSecret, depth);
     return new Promise(resolve => {      
       connector.once('synchronized', () => {
-        console.log(`Connector ${connector.constructor.mic} is connected`);
+        logger.info(`Connector ${connector.constructor.mic} is connected.`);
         resolve(connector);
       });
       connector.init();

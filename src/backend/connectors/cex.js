@@ -29,7 +29,7 @@ class CexConnector extends Connector {
    * Коннектимся к сокету.
    */
   init() {
-    logger.info('Connecting to websocket');
+    logger.info('Connecting to websocket.');
     this.ws = new WebSocket(CEX_WS_URL);
     this.ws.on('message', data => this.__onMessage(data));
     this.ws.on('open', () => this.__auth());
@@ -234,7 +234,6 @@ class CexConnector extends Connector {
   __onAuthenticated() {
     this.__orderBookSubscribe();
     this.__pairRoomSubscribe();
-    this.emit('connected');
   }
 
   /**
@@ -274,7 +273,7 @@ class CexConnector extends Connector {
   }
 
 
-  async __onHistoryUpdate(data) {
+  __onHistoryUpdate(data) {
     data.data.forEach(trade => {
       this.emit('trade',  this.__normalizeTradeInfo(trade));
     });

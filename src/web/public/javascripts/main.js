@@ -9,17 +9,27 @@ require('../stylesheets/main.css');
 
 function createChart() {
   return AmCharts.makeChart( "chart", {
-    "type": "serial",
-    "categoryField": "date",
-    "autoMarginOffset": 40,
-    "marginRight": 60,
-    "marginTop": 60,
-    "fontSize": 12,
-    "theme": "light",
-    "categoryAxis": {
-      "parseDates": true, 
+    type: "serial",
+    categoryField: "date",
+    autoMarginOffset: 40,
+    marginRight: 60,
+    marginTop: 60,
+    fontSize: 12,
+    theme: "light",
+
+    legend: {
+      equalWidths: false,
+      useGraphSettings: true,
+      valueAlign: "left",
+      valueWidth: 120
+    },
+
+    categoryAxis: {
+      parseDates: true, 
       minPeriod: 'ss'
     },
+
+
     "chartCursor": {
       "enabled": true,
       position: 'mouse',
@@ -34,12 +44,13 @@ function createChart() {
       "graph": "g1",
       "graphType": "line",
       "scrollbarHeight": 30,
-      usePeriod: "mm"
+      usePeriod: "ss"
     },
     "trendLines": [],
     "graphs": [
       {
-        "balloonText": "[[books]]",
+        bulletAlpha: 1,
+        balloonText: "[[volume]]",
         id: 'g1',
         valueField: 'price1',
         type: 'line',
@@ -47,11 +58,12 @@ function createChart() {
         lineThickness: 0,
         bullet: 'round',
         bulletColor: 'red',
-        bulletSizeField: 'bulletSize1',
-        // "useDataSetColors": true,
+        bulletSizeField: 'bulletSize',
+        title: 'MARKET 1'
       },
       {
-        "balloonText": "[[books]]",
+        bulletAlpha: 1,
+        balloonText: "[[volume]]",
         id: 'g2',
         valueField: 'price2',
         type: 'line',
@@ -59,8 +71,8 @@ function createChart() {
         lineThickness: 0,
         bullet: 'round',
         bulletColor: 'green',
-        bulletSizeField: 'bulletSize2',
-        // "useDataSetColors": true,
+        bulletSizeField: 'bulletSize',
+        title: 'MARKET 2'
       }
     ],
     "guides": [
@@ -115,10 +127,11 @@ function createChart() {
 
 const chart = createChart();
 
-function addNode(parent, childClass) {
+function addNode(parent, childClass, text) {
   const childDiv = $('<div/>');
   childDiv.addClass(childClass);
   parent.append(childDiv);
+  childDiv.text(text);
   return childDiv;
 }
 
@@ -126,6 +139,8 @@ function addNode(parent, childClass) {
 function fillItems(items, div) {
   const pricesDiv = addNode(div, 'prices');
   const amountsDiv = addNode(div, 'amounts');
+  addNode(pricesDiv, 'header', 'Price');
+  addNode(amountsDiv, 'header', 'Amount');
 
   items.forEach(item => {
     const [price, amount] = item;
@@ -143,22 +158,26 @@ chart.addListener("rollOverGraphItem", function(event) {
 
   books.forEach((book, i) => {
     const bookDiv = addNode(booksDiv, 'book');
-
+    addNode(bookDiv, 'header', `MARKET ${i + 1} - ${book.mic}`);
     const asksDiv = addNode(bookDiv, 'asks');
     const bidsDiv = addNode(bookDiv, 'bids');
-    
+    addNode(asksDiv, 'header', 'Sell side');
+    addNode(bidsDiv, 'header', 'Buy side');
     fillItems(book.sellSide, asksDiv);
-    fillItems(book.sellSide, bidsDiv);
+    fillItems(book.buySide, bidsDiv);
   });
 
 });
 
 let nonce;
 let batchId;
+let intervalId;
 
 function updateChart(data) {
-  data.forEach((trade) => chart.dataProvider.push(trade));
-  // chart.dataProvider = chart.dataProvider.concat(d []ata);
+  if (!data.length)
+    return;
+
+  chart.dataProvider = chart.dataProvider.concat(data);
   chart.validateData();
 }
 
@@ -170,7 +189,7 @@ function start() {
     const historyRequestObject = {type: 'history'};
     ws.send(JSON.stringify(historyRequestObject));
 
-    setInterval(() => {
+    intervalId = setInterval(() => {
       const updateRequestObject = {
         type: 'update',
         nonce,
@@ -188,7 +207,10 @@ function start() {
     batchId = data.batchId;
   };
 
-  ws.onclose = () => setTimeout(start, 1000);
+  ws.onclose = () => {
+    clearInterval(intervalId);
+    start();
+  }
 
   ws.onerror = event => {
     console.log(event);

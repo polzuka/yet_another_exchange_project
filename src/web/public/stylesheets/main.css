@@ -1,11 +1,12 @@
 body {
 	font-family: 'Noto Sans', sans-serif;
+	font-size: 12px;
 	margin: 0 auto;
 	height: 100%;
 	width: 100%;
 }
 #chart {
-	height: 600px;
+	height: 70vh;
 	width: 100%;
 }
 
@@ -19,5 +20,9 @@ body {
 	position: relative;
 	width: 50%;
 	float: left;
+}
+
+.header {
+	text-align: center;
 }
 

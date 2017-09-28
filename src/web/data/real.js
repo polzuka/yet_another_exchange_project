@@ -8,9 +8,9 @@ function getChartItem(trade, books) {
   const i = mics[trade.mic];
   const chartItem = {
     date: new Date(trade.ts),
-    volume: Math.abs(trade.amount),
-    bulletSize: Math.abs(trade.amount),
-    books: books.books
+    volume: trade.amount,
+    bulletSize: trade.amount,
+    books: books.books,
   };
 
   chartItem[`price${i}`] = trade.price;

@@ -11,7 +11,7 @@ class Connector extends EventEmitter {
     super();
 
     if (this.constructor.mic === undefined)
-      throw new Error('!!!!!');
+      throw new Error('MIC (market identification code) must be specified.');
 
     this.pair = pair, 
     this.splittedPair = [pair.substr(0, 3), pair.substr(3)];
