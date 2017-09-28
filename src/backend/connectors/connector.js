@@ -40,8 +40,8 @@ class Connector extends EventEmitter {
 
   __normalizeBookInfo(book) {
     return {
-      buySide: book.buySide.toJSON(),
-      sellSide: book.sellSide.toJSON(),
+      buySide: book.buySide.toJSON().slice(0, this.depth),
+      sellSide: book.sellSide.toJSON().slice(0, this.depth),
       ts: book.ts,
       pair: this.pair,
       mic: this.constructor.mic
