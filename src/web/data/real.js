@@ -22,7 +22,7 @@ async function getHistoryData() {
   const batchId = await db.trades.getLastBatchId();
   const rows = await db.trades.getBatchTrades(batchId) || [];
 
-  const chartData = rows.slice(0,10).map(({trade, books, nonce}) => getChartItem(trade, books));
+  const chartData = rows.map(({trade, books, nonce}) => getChartItem(trade, books));
 
   const nonce = rows.length ? rows[rows.length - 1].nonce : 0;
 

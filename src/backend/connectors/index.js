@@ -17,7 +17,10 @@ class Connectors {
     const connectorConstructor = this.__getConstructor(mic);
     const connector = new connectorConstructor(pair, apiKey, apiSecret, depth);
     return new Promise(resolve => {      
-      connector.once('synchronized', () => resolve(connector));
+      connector.once('synchronized', () => {
+        console.log(`Connector ${connector.constructor.mic} is connected`);
+        resolve(connector);
+      });
       connector.init();
     });
   }
