@@ -11,9 +11,9 @@ function createChart() {
   return AmCharts.makeChart( "chart", {
     type: "serial",
     categoryField: "date",
-    autoMarginOffset: 40,
-    marginRight: 60,
-    marginTop: 60,
+    autoMarginOffset: 10,
+    marginRight: 10,
+    marginTop: 10,
     fontSize: 12,
     theme: "light",
 
@@ -30,24 +30,35 @@ function createChart() {
     },
 
 
-    "chartCursor": {
-      "enabled": true,
+
+
+    chartCursor: {
+      enabled: true,
       position: 'mouse',
-      "valueBalloonsEnabled": true,
-    "graphBulletSize": 1,
-    "valueLineBalloonEnabled": true,
-    "valueLineEnabled": true,
-    "valueLineAlpha": 0.5
+      valueBalloonsEnabled: true,
+      graphBulletSize: 1,
+      valueLineBalloonEnabled: true,
+      valueLineEnabled: true,
+      valueLineAlpha: 0.5,
+      zoomable: false,
+      valueZoomable: true,
     },
-    "chartScrollbar": {
-      "enabled": true,
-      "graph": "g1",
-      "graphType": "line",
-      "scrollbarHeight": 30,
+
+    chartScrollbar: {
+      enabled: true,
+      graph: "g1",
+      graphType: "line",
+      scrollbarHeight: 30,
       usePeriod: "ss"
     },
-    "trendLines": [],
-    "graphs": [
+
+    valueScrollbar: {
+      autoGridCount: true,
+      color: "#000000",
+      scrollbarHeight: 30
+    },
+
+    graphs: [
       {
         bulletAlpha: 1,
         balloonText: "[[volume]]",

@@ -57,12 +57,18 @@ class BitfinexConnector extends Connector {
     this.init();
   }
 
+  __onErrorEvent(message, code) {
+    logger.error(`Response error (${code}): '${message}'.`);
+    this.ws.close();
+  }
+
   __onMessage(message) {
     const data = JSON.parse(message);
     // logger.info(message);
 
     switch(data.event) {
       case 'subscribed': return this.__onSubscribed(data);
+      case 'error': return this.__onErrorEvent(data.msg, data.code);
       case undefined: return this.__onData(data);
       default: logger.debug(data);
     }
