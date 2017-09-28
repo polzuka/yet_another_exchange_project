@@ -1,3 +1,4 @@
+const $ = require('../jquery/jquery.min.js');
 require('../amcharts/amcharts.js');
 require('../amcharts/serial.js');
 require('../amcharts/amstock.js');
@@ -5,8 +6,9 @@ require('../amcharts/plugins/export/export.min.js');
 require('../amcharts/themes/light.js');
 require('../stylesheets/main.css');
 
+
 function createChart() {
-  return AmCharts.makeChart( "chartdiv", {
+  return AmCharts.makeChart( "chart", {
     "type": "serial",
     "categoryField": "date",
     "autoMarginOffset": 40,
@@ -20,8 +22,12 @@ function createChart() {
     },
     "chartCursor": {
       "enabled": true,
-      // valueLineBalloonEnabled: true,
-      //   valueLineEnabled: true
+      position: 'mouse',
+      "valueBalloonsEnabled": true,
+    "graphBulletSize": 1,
+    "valueLineBalloonEnabled": true,
+    "valueLineEnabled": true,
+    "valueLineAlpha": 0.5
     },
     "chartScrollbar": {
       "enabled": true,
@@ -33,26 +39,24 @@ function createChart() {
     "trendLines": [],
     "graphs": [
       {
-        "balloonText": "Open:<b>[[open]]</b><br>Low:<b>[[low]]</b><br>High:<b>[[high]]</b><br>Close:<b>[[close]]</b><br>",
+        "balloonText": "[[books]]",
         id: 'g1',
         valueField: 'price1',
         type: 'line',
-        showBalloon: false,
         fillAlphas: 0,
-        lineThickness: 2,
+        lineThickness: 0,
         bullet: 'round',
         bulletColor: 'red',
         bulletSizeField: 'bulletSize1',
         // "useDataSetColors": true,
       },
       {
-        "balloonText": "Open:<b>[[open]]</b><br>Low:<b>[[low]]</b><br>High:<b>[[high]]</b><br>Close:<b>[[close]]</b><br>",
+        "balloonText": "[[books]]",
         id: 'g2',
         valueField: 'price2',
         type: 'line',
-        showBalloon: false,
         fillAlphas: 0,
-        lineThickness: 2,
+        lineThickness: 0,
         bullet: 'round',
         bulletColor: 'green',
         bulletSizeField: 'bulletSize2',
@@ -104,13 +108,51 @@ function createChart() {
       } ]
     },
     "allLabels": [],
-    "balloon": {},
     "titles": [],
     "dataProvider": []
   } );
 }
 
 const chart = createChart();
+
+function addNode(parent, childClass) {
+  const childDiv = $('<div/>');
+  childDiv.addClass(childClass);
+  parent.append(childDiv);
+  return childDiv;
+}
+
+
+function fillItems(items, div) {
+  const pricesDiv = addNode(div, 'prices');
+  const amountsDiv = addNode(div, 'amounts');
+
+  items.forEach(item => {
+    const [price, amount] = item;
+    const priceDiv = addNode(pricesDiv, 'price');
+    const amountDiv = addNode(amountsDiv, 'amount');
+    priceDiv.text(price);
+    amountDiv.text(amount);
+  });
+}
+
+chart.addListener("rollOverGraphItem", function(event) {
+  const booksDiv = $('#books');
+  booksDiv.empty();
+  const books = event.item.dataContext.books;
+
+  books.forEach((book, i) => {
+    const bookDiv = addNode(booksDiv, 'book');
+
+    const asksDiv = addNode(bookDiv, 'asks');
+    const bidsDiv = addNode(bookDiv, 'bids');
+    
+    fillItems(book.sellSide, asksDiv);
+    fillItems(book.sellSide, bidsDiv);
+  });
+
+});
+
 let nonce;
 let batchId;
 

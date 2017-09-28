@@ -1,13 +1,23 @@
 body {
-  padding: 50px;
-  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+	font-family: 'Noto Sans', sans-serif;
+	margin: 0 auto;
+	height: 100%;
+	width: 100%;
+}
+#chart {
+	height: 600px;
+	width: 100%;
 }
 
-a {
-  color: #00B7FF;
+#books {
+	height: 30%;
+	width: 100%;
+	position:relative;
 }
 
-#chartdiv {
-  width: 100%;
-  height: 500px;
+.book,.bids,.asks,.prices,.amounts  {
+	position: relative;
+	width: 50%;
+	float: left;
 }
+
