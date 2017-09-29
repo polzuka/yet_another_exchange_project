@@ -1,10 +1,10 @@
 {
   "dev": {
     "driver": "pg",
-    "user": "yaep",
-    "password": "yaep",
+    "user": "market",
+    "password": "market",
     "host": "localhost",
-    "database": "yaep",
+    "database": "market",
     "schema": "public"
   },
   "sql-file": true
