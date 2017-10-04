@@ -21,19 +21,32 @@ class CexConnector extends Connector {
     this.maxDepth = Math.round(this.depth * 1.1);
     this.requestId = 0;
 
-    // Флаг показывающий, актуален ли стакан у коннектора
-    this.isSynchronized = false;
+    
+    
   }
 
   /**
    * Коннектимся к сокету.
    */
   init() {
+    // Флаг показывающий, актуален ли стакан у коннектора
+    this.isSynchronized = false;
     logger.info('Connecting to websocket.');
     this.ws = new WebSocket(CEX_WS_URL);
     this.ws.on('message', data => this.__onMessage(data));
     this.ws.on('open', () => this.__auth());
-    this.ws.on('error', error => logger.error(error))
+    this.ws.on('error', error => this.__onError(error));
+    this.ws.on('close', event => this.__onClose(event));
+  }
+
+  __onError(error) {
+    logger.error('Socket error %j', error);
+  }
+
+  __onClose(event) {
+    logger.error('Socket close %j', event);
+    logger.warn(event);
+    this.init();
   }
 
   __onSynchronized() {

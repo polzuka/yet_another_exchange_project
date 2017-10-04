@@ -6,33 +6,89 @@ require('../amcharts/plugins/export/export.min.js');
 require('../amcharts/themes/light.js');
 require('../stylesheets/main.css');
 
+const data = [];
 
 function createChart() {
-  return AmCharts.makeChart( "chart", {
-    type: "serial",
-    categoryField: "date",
-    autoMarginOffset: 10,
-    marginRight: 10,
-    marginTop: 10,
-    fontSize: 12,
+  return AmCharts.makeChart("chart", {
+    type: "stock",
     theme: "light",
 
-    legend: {
-      equalWidths: false,
-      useGraphSettings: true,
-      valueAlign: "left",
-      valueWidth: 120
+    mouseWheelScrollEnabled: true,
+  
+    "categoryAxesSettings": {
+      "minPeriod": "ss",
+      "groupToPeriods": [ 'ss' ]
     },
 
-    categoryAxis: {
-      parseDates: true, 
-      minPeriod: 'ss'
-    },
+    panels: [{
+      showCategoryAxis: true,
+      title: "MARKET 1",
+      percentHeight: 50,
+      stockGraphs: [{
+        bulletAlpha: 0,
+        bulletBorderAlpha: 1,
+        bulletBorderThickness: 1,
+        balloonText: "price: [[price1]]<br>amount: [[volume]]",
+        id: 'g1',
+        valueField: 'price1',
+        type: 'line',
+        lineThickness: 0,
+        bullet: 'round',
+        lineColorField: 'bulletColor',
+        bulletSizeField: 'bulletSize',
+      }],
+      stockLegend: {
+        valueText: '',
+        valueTextRegular: '',
+        "markerType": "none"
+      }
+    }, {
+      showCategoryAxis: true,
+      title: "MARKET 2",
+      percentHeight: 50,
+      stockGraphs: [{
+        bulletAlpha: 0,
+        bulletBorderAlpha: 1,
+        bulletBorderThickness: 1,
+        balloonText: "price: [[price2]]<br>amount: [[volume]]",
+        id: 'g2',
+        valueField: 'price2',
+        type: 'line',
+        lineThickness: 0,
+        bullet: 'round',
+        lineColorField: 'bulletColor',
+        bulletSizeField: 'bulletSize',
+      }],
+      stockLegend: {
+        valueText: '',
+        valueTextRegular: '',
+        "markerType": "none"
+      }
+    }],
 
+    dataSets: [ {
+      fieldMappings: [ {
+        fromField: "volume",
+        toField: "volume"
+      }, {
+        fromField: "price1",
+        toField: "price1"
+      }, {
+        fromField: "price2",
+        toField: "price2"
+      }, {
+        fromField: "bulletSize",
+        toField: "bulletSize"
+      }, {
+        fromField: "bulletColor",
+        toField: "bulletColor"
+      } ],
+      dataProvider: data,
+      categoryField: "date",
+      stockEvents: []
+    } ],
 
-
-
-    chartCursor: {
+    chartCursorSettings: {
       enabled: true,
       position: 'mouse',
       valueBalloonsEnabled: true,
@@ -40,100 +96,54 @@ function createChart() {
       valueLineBalloonEnabled: true,
       valueLineEnabled: true,
       valueLineAlpha: 0.5,
-      zoomable: false,
-      valueZoomable: true,
+      // zoomable: false,
+      // valueZoomable: true,
     },
 
-    chartScrollbar: {
+    chartScrollbarSettings: {
       enabled: true,
       graph: "g1",
       graphType: "line",
       scrollbarHeight: 30,
-      usePeriod: "ss"
+      usePeriod: 'ss'
     },
 
-    valueScrollbar: {
-      autoGridCount: true,
-      color: "#000000",
-      scrollbarHeight: 30
-    },
-
-    graphs: [
-      {
-        bulletAlpha: 1,
-        balloonText: "[[volume]]",
-        id: 'g1',
-        valueField: 'price1',
-        type: 'line',
-        fillAlphas: 0,
-        lineThickness: 0,
-        bullet: 'round',
-        bulletColor: 'red',
-        bulletSizeField: 'bulletSize',
-        title: 'MARKET 1'
-      },
-      {
-        bulletAlpha: 1,
-        balloonText: "[[volume]]",
-        id: 'g2',
-        valueField: 'price2',
-        type: 'line',
-        fillAlphas: 0,
-        lineThickness: 0,
-        bullet: 'round',
-        bulletColor: 'green',
-        bulletSizeField: 'bulletSize',
-        title: 'MARKET 2'
-      }
-    ],
-    "guides": [
-      {
-        "id": "Guide-1"
-      },
-      {
-        "id": "Guide-2"
-      }
-    ],
-    "valueAxes": [
-      {
-        "id": "ValueAxis-1"
-      }
-    ],
-    periodSelector: {
-      position: "bottom",
-      periods: [ {
-        period: "ss",
-        count: 1,
-        label: "1 sec"
-      }, {
-        period: "ss",
-        count: 100,
-        label: "100 sec"
-      }, {
-        period: "DD",
-        count: 10,
-        label: "10 days"
-      }, {
-        period: "MM",
-        selected: true,
-        count: 1,
-        label: "1 month"
-      }, {
-        period: "YYYY",
-        count: 1,
-        label: "1 year"
-      }, {
-        period: "YTD",
-        label: "YTD"
-      }, {
-        period: "MAX",
-        label: "MAX"
-      } ]
-    },
-    "allLabels": [],
-    "titles": [],
-    "dataProvider": []
-  } );
+    // periodSelector: {
+    //   position: "bottom",
+    //   periods: [ {
+    //     period: "ss",
+    //     count: 1,
+    //     label: "1 sec"
+    //   }, {
+    //     period: "ss",
+    //     count: 10,
+    //     label: "10 sec"
+    //   }, {
+    //     period: "ss",
+    //     count: 100,
+    //     label: "100 sec"
+    //   }, {
+    //     period: "DD",
+    //     count: 10,
+    //     label: "10 days"
+    //   }, {
+    //     period: "MM",
+    //     selected: true,
+    //     count: 1,
+    //     label: "1 month"
+    //   }, {
+    //     period: "YYYY",
+    //     count: 1,
+    //     label: "1 year"
+    //   }, {
+    //     period: "YTD",
+    //     label: "YTD"
+    //   }, {
+    //     period: "MAX",
+    //     label: "MAX"
+    //   } ]
+    // },
+  } ); 
 }
 
 const chart = createChart();
@@ -146,12 +156,11 @@ function addNode(parent, childClass, text) {
   return childDiv;
 }
 
-
 function fillItems(items, div) {
   const pricesDiv = addNode(div, 'prices');
   const amountsDiv = addNode(div, 'amounts');
-  addNode(pricesDiv, 'header', 'Price');
-  addNode(amountsDiv, 'header', 'Amount');
+  addNode(pricesDiv, '', 'Price');
+  addNode(amountsDiv, '', 'Amount');
 
   items.forEach(item => {
     const [price, amount] = item;
@@ -162,13 +171,13 @@ function fillItems(items, div) {
   });
 }
 
-chart.addListener("rollOverGraphItem", function(event) {
+function onClickGraphItem(event) {
   const booksDiv = $('#books');
   booksDiv.empty();
   const books = event.item.dataContext.books;
 
   books.forEach((book, i) => {
-    const bookDiv = addNode(booksDiv, 'book');
+    const bookDiv = addNode(booksDiv, `book${i + 1}`);
     addNode(bookDiv, 'header', `MARKET ${i + 1} - ${book.mic}`);
     const asksDiv = addNode(bookDiv, 'asks');
     const bidsDiv = addNode(bookDiv, 'bids');
@@ -177,7 +186,12 @@ chart.addListener("rollOverGraphItem", function(event) {
     fillItems(book.sellSide, asksDiv);
     fillItems(book.buySide, bidsDiv);
   });
+}
 
+chart.addListener('init', () => {
+  chart.panels.forEach(panel => {
+    panel.addListener('clickGraphItem', onClickGraphItem);
+  });
 });
 
 let nonce;
@@ -188,7 +202,7 @@ function updateChart(data) {
   if (!data.length)
     return;
 
-  chart.dataProvider = chart.dataProvider.concat(data);
+  chart.dataSets.forEach(dataSet => dataSet.dataProvider = dataSet.dataProvider.concat(data));
   chart.validateData();
 }
 

@@ -9,7 +9,8 @@ function getChartItem(trade, books) {
   const chartItem = {
     date: new Date(trade.ts),
     volume: trade.amount,
-    bulletSize: trade.amount,
+    bulletSize: trade.amount * 10,
+    bulletColor: trade.side === 'SELL' ? 'red' : 'green',
     books: books.books,
   };
 
@@ -22,11 +23,12 @@ async function getHistoryData() {
   const batchId = await db.trades.getLastBatchId();
   const rows = await db.trades.getBatchTrades(batchId) || [];
 
+  // const chartData = rows.slice(0, 10).map(({trade, books, nonce}) => getChartItem(trade, books));
   const chartData = rows.map(({trade, books, nonce}) => getChartItem(trade, books));
 
   const nonce = rows.length ? rows[rows.length - 1].nonce : 0;
 
-  console.log({chartData});
+  console.log(JSON.stringify(chartData));
 
   return {
     chartData,

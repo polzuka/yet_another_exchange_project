@@ -10,6 +10,7 @@ const logger = ConnectorLoggingContainer.add('bitfinex');
 
 
 const BITFINEX_WS_URL = 'wss://api.bitfinex.com/ws/2';
+const CHECK_SOCKET_ALIVE_INTERVAL_MS = 1000;
 
 class BitfinexConnector extends Connector {
   constructor(pair, apiKey, apiSecret, depth) {
@@ -18,18 +19,18 @@ class BitfinexConnector extends Connector {
     // Если делать стакан глубиной depth, то он часто опустошается и приходится его переподгружать.
     // Поэтому реальная глубина стакана будет depth <= realDepth <= maxDepth
     this.maxDepth = Math.round(this.depth * 1.1);
-
-    // Флаг показывающий, актуален ли стакан у коннектора
-    this.isSynchronized = false;
-
-    this.tradesChanId = null;
-    this.bookChanId = null;
   }
 
   /**
    * Коннектимся к сокету.
    */
   init() {
+    if (this.intervalId) {
+      clearInterval(this.intervalId);
+    }
+
+    // Флаг показывающий, актуален ли стакан у коннектора
+    this.isSynchronized = false;
     logger.info('Connecting to websocket.');
     this.ws = new WebSocket(BITFINEX_WS_URL);
     this.ws.on('message', data => this.__onMessage(data));
@@ -45,15 +46,21 @@ class BitfinexConnector extends Connector {
   __onSocketOpen() {
     this.__bookSubscribe();
     this.__tradesSubscribe();
+    this.intervalId = setInterval(() => this.__checkSocketAlive(), CHECK_SOCKET_ALIVE_INTERVAL_MS);
+  }
+
+  __checkSocketAlive() {
+    if (this.lastMessageTs && Date.now() - this.lastMessageTs > 10000) 
+      this.ws.close();
   }
 
   __onSocketError(error) {
-    logger.error(error);
+    logger.error('Socket error %j', error);
   }
 
   __onSocketClose(event) {
+    logger.error('Socket close %j', event);
     logger.warn(event);
-    this.isSynchronized = false;
     this.init();
   }
 
@@ -66,12 +73,15 @@ class BitfinexConnector extends Connector {
     const data = JSON.parse(message);
     // logger.info(message);
 
+    this.lastMessageTs = Date.now();
+
     switch(data.event) {
       case 'subscribed': return this.__onSubscribed(data);
       case 'error': return this.__onErrorEvent(data.msg, data.code);
       case undefined: return this.__onData(data);
       default: logger.debug(data);
     }
+
   }
 
   __tradesSubscribe() {

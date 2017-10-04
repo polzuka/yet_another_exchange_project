@@ -13,14 +13,14 @@ winston.Container.prototype.add = function (loggerName, options)  {
 }
 
 const container = new winston.Container({
-    transports: [
-      new winston.transports.Console( {
-        level: 'info',
-        colorize: true,
-        formatter: args => `[${args.meta._l}] <${new Date().toISOString()}> (${args.level}): ${args.message}`
-      } ),
-    ]
-  });
-
+  transports: [
+    new winston.transports.Console( {
+      level: 'debug',
+      colorize: true,
+      prettyPrint: true,
+      formatter: args => `[${args.meta._l}] <${new Date().toISOString()}> (${args.level}): ${args.message}`
+    } ),
+  ]
+});
 
 module.exports = container;

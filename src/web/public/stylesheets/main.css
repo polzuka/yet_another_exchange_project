@@ -6,20 +6,45 @@ body {
 	width: 100%;
 }
 #chart {
-	height: 70vh;
-	width: 100%;
+	height: 100vh;
+    position: absolute;
+    right: 300px;
+    left: 0px;
 }
 
 #books {
-	height: 30%;
-	width: 100%;
-	position:relative;
+	width: 300px;
+	position: absolute;
+	right: 0;
 }
 
-.book,.bids,.asks,.prices,.amounts  {
+.book1 {
+	position: absolute;
+	top: 0;
+	width: 100%;
+}
+
+.book2 {
+	position: absolute;
+	top: 50vh;
+	width: 100%;
+}
+
+.bids,.asks,.prices,.amounts  {
 	position: relative;
 	width: 50%;
 	float: left;
+}
+
+
+
+.asks {
+    background: #faebd7;
+}
+
+
+.bids {
+    background: #99e8b5;;
 }
 
 .header {

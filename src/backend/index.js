@@ -6,8 +6,13 @@
 });
 
 const connectors = require('./connectors');
+const ConnectorLoggingContainer = require('./logger');
 const {CEX_KEY, CEX_SECRET} = require('./config');
 const db = require('./db');
+
+
+const logger = ConnectorLoggingContainer.add('index');
+
 
 const batchId = Date.now();
 
@@ -16,12 +21,8 @@ const batchId = Date.now();
 async function onTrade(trade, connectorList) {
   const books = await Promise.all(connectorList.map(connector => connector.getBook()));
   // console.log(JSON.stringify(books));
-  try {
   await db.trades.add(batchId, trade, books);
-} catch(e) {
-  console.log('!!!!', e, batchId, trade, books)
-}
-
+  logger.info('New trade %j', {trade, books});
 }
 
 async function main() {

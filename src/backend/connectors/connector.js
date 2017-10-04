@@ -35,7 +35,7 @@ class Connector extends EventEmitter {
     let s = `\nASKS${' '.repeat(maxAsksLength)}BIDS\n`;
     for (let i = 0; i < this.depth; i++)
       s += asks[i] + ' '.repeat(maxAsksLength - (asks[i] || '').length + 4) + bids[i] + '\n';
-    logger.debug(s);
+    // logger.debug(s);
   }
 
   __normalizeBookInfo(book) {
