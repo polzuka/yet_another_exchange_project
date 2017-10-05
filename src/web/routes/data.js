@@ -6,7 +6,7 @@ const router = express.Router();
 
 async function getData(requestObject) {
   switch (requestObject.type) {
-    case 'history': return await getHistoryData();
+    case 'history': return await getHistoryData(requestObject.batchId);
     case 'update': return await getUpdateData(requestObject.batchId, requestObject.nonce);
     default: throw new Error(`Unknown type '${requestObject}'.`);
   }

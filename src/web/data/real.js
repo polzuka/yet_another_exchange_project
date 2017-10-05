@@ -9,18 +9,28 @@ function getChartItem(trade, books) {
   const chartItem = {
     date: new Date(trade.ts),
     volume: trade.amount,
-    bulletSize: trade.amount * 10,
-    bulletColor: trade.side === 'SELL' ? 'red' : 'green',
+    // bulletSize: trade.amount * 10,
+    bulletSize: 7,
+    bullet: trade.side === 'SELL' ? 'triangleDown' : 'triangleUp',
     books: books.books,
   };
 
   chartItem[`price${i}`] = trade.price;
 
+  books.books.forEach(book => {
+    const i = mics[book.mic];
+    chartItem[`sell${i}`] = book.sellSide[0][0];
+    chartItem[`buy${i}`] = book.buySide[0][0];
+  });
+  
+
   return chartItem;
 }
 
-async function getHistoryData() {
-  const batchId = await db.trades.getLastBatchId();
+async function getHistoryData(batchId) {
+  console.log({batchId})
+  if (batchId === undefined) 
+    batchId = await db.trades.getLastBatchId();
   const rows = await db.trades.getBatchTrades(batchId) || [];
 
   // const chartData = rows.slice(0, 10).map(({trade, books, nonce}) => getChartItem(trade, books));

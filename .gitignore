@@ -2,3 +2,4 @@ node_modules/*
 build/*
 yaep.sublime-project
 yaep.sublime-workspace
+.directory
