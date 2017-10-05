@@ -8,15 +8,12 @@
 const connectors = require('./connectors');
 const ConnectorLoggingContainer = require('./logger');
 const {CEX_KEY, CEX_SECRET} = require('./config');
-const db = require('./db');
 
 const logger = ConnectorLoggingContainer.add('index');
-const batchId = Date.now();
 
-async function onTrade(trade, connectorList) {
-  const books = await Promise.all(connectorList.map(connector => connector.getBook()));
-  await db.trades.add(batchId, trade, books);
-  logger.info('New trade %j', {trade, books});
+async function onTrade(trade, connector) {
+  const book = await connector.getBook();
+  logger.info('New trade %j', {trade, book});
 }
 
 async function main() {
@@ -25,8 +22,9 @@ async function main() {
     connectors.create('BITFINEX', 'BTCUSD', CEX_KEY, CEX_SECRET, 10)
   ]);
 
+  const [cex, ] = connectorList;
   connectorList.forEach(connector => {
-    connector.on('trade', trade => onTrade(trade, connectorList));
+    connector.on('trade', trade => onTrade(trade, cex));
   });
 }
 

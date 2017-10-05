@@ -24,7 +24,7 @@ module.exports = (model, pgp) => {
     }),
 
     getBatchTrades: (batchId, nonce = 0) => model.manyOrNone(
-      "SELECT trade, books, id AS nonce FROM trades WHERE batch_id = $1 AND id > $2",
+      "SELECT trade, books, id AS nonce FROM trades WHERE batch_id = $1 AND id > $2 ORDER BY id",
       [batchId, nonce]
     ),
 
