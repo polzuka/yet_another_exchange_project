@@ -31,7 +31,7 @@ module.exports = (model, pgp) => {
     getBatches: () => model.manyOrNone(
       "SELECT batch_id FROM trades GROUP BY batch_id ORDER BY batch_id DESC"
     ).then(rows => {
-      return rows ? rows.map(row => row.batch_id) : null;
+      return rows ? rows.map(row => row.batch_id) : [];
     })
   };
 };
