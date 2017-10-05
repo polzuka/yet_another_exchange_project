@@ -5,6 +5,10 @@ const logger = require('morgan');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 
+process.on('unhandledRejection', reason => {
+    console.log('Reason: ' + reason);
+});
+
 const expressWs = require('express-ws')(express());
 const app = expressWs.app;
 
