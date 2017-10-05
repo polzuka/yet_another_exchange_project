@@ -19,8 +19,11 @@ function getChartItem(trade, books) {
 
   books.books.forEach(book => {
     const i = mics[book.mic];
-    chartItem[`sell${i}`] = book.sellSide[0][0];
-    chartItem[`buy${i}`] = book.buySide[0][0];
+    if (book.sellSide.length)
+      chartItem[`sell${i}`] = book.sellSide[0][0];
+    
+    if (book.buySide.length)
+      chartItem[`buy${i}`] = book.buySide[0][0];
   });
   
 
