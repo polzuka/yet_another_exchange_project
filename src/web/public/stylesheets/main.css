@@ -1,39 +1,57 @@
 body {
-	font-family: 'Noto Sans', sans-serif;
-	font-size: 12px;
-	margin: 0 auto;
-	height: 100%;
-	width: 100%;
+    font-family: 'Noto Sans', sans-serif;
+    font-size: 12px;
+    margin: 0 auto;
+    height: 100%;
+    width: 100%;
 }
-#chart {
-	height: 100vh;
+#chartWrapper {
+    height: 100vh;
     position: absolute;
     right: 300px;
     left: 0px;
 }
 
-#books {
-	width: 300px;
-	position: absolute;
-	right: 0;
+#chart {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+
+
+#booksWrapper {
+    width: 300px;
+    position: absolute;
+    right: 0;
+    height: 100vh;
+}
+
+#book {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 50px;
 }
 
 .book1 {
-	position: absolute;
-	top: 0;
-	width: 100%;
+    position: absolute;
+    top: 0;
+    width: 100%;
 }
 
 .book2 {
-	position: absolute;
-	top: 50vh;
-	width: 100%;
+    position: absolute;
+    top: 50vh;
+    width: 100%;
 }
 
 .bids,.asks,.prices,.amounts  {
-	position: relative;
-	width: 50%;
-	float: left;
+    position: relative;
+    width: 50%;
+    float: left;
 }
 
 
@@ -48,6 +66,20 @@ body {
 }
 
 .header {
-	text-align: center;
+    text-align: center;
+}
+
+#loader {
+    position: absolute;
+    margin: auto;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+
+#batches {
+    position: absolute;
+    bottom: 0;
 }
 

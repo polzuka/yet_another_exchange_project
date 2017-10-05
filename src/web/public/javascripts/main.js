@@ -45,10 +45,11 @@ function createChart() {
 
     chartScrollbar: {
       enabled: true,
-      graph: "g1",
-      graphType: "line",
+      graph: 'g1',
+      graphType: 'line',
       scrollbarHeight: 30,
-      usePeriod: "ss"
+      usePeriod: 'ss',
+      oppositeAxis: false
     },
 
     valueScrollbar: {
@@ -217,7 +218,7 @@ function fillItems(items, div) {
   });
 }
 
-chart.addListener("rollOverGraphItem", function(event) {
+chart.addListener('rollOverGraphItem', event => {
   const booksDiv = $('#books');
   booksDiv.empty();
   const books = event.item.dataContext.books;
@@ -232,7 +233,11 @@ chart.addListener("rollOverGraphItem", function(event) {
     fillItems(book.sellSide, asksDiv);
     fillItems(book.buySide, bidsDiv);
   });
+});
 
+chart.addListener('rendered', () => {
+  const loader = $('#loader');
+  loader.hide();
 });
 
 let nonce;
@@ -287,4 +292,9 @@ function start() {
   };
 }
 
-$(document).ready(() => start());
+$(document).ready(() => {
+  start();
+  $('#batches select').change(event => {
+    window.location.href = window.location.origin + '?batchId=' + $(event.target).find('option:selected').attr('batchId')
+  });
+});

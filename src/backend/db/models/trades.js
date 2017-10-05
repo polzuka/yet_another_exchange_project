@@ -26,6 +26,12 @@ module.exports = (model, pgp) => {
     getBatchTrades: (batchId, nonce = 0) => model.manyOrNone(
       "SELECT trade, books, id AS nonce FROM trades WHERE batch_id = $1 AND id > $2",
       [batchId, nonce]
-    )
+    ),
+
+    getBatches: () => model.manyOrNone(
+      "SELECT batch_id FROM trades GROUP BY batch_id ORDER BY batch_id DESC"
+    ).then(rows => {
+      return rows ? rows.map(row => row.batch_id) : null;
+    })
   };
 };
