@@ -213,7 +213,7 @@ class CexConnector extends Connector {
 
     switch(data.e) {
       case 'ping': return this.__onPing();
-      case 'auth': return this.__onAuthenticated();
+      case 'auth': return this.__onAuthenticated(data);
       case 'order-book-subscribe': return this.__onOrderBookSubscribed(data);
       case 'order-book-unsubscribe': return this.__onOrderBookUnsubscribe(data);
       case 'md_update': return this.__onOrderBookUpdated(data);
@@ -244,7 +244,10 @@ class CexConnector extends Connector {
   /**
    * Как только подключились и авторизовались, дернем стакан и начнем слушать сделки.
    */
-  __onAuthenticated() {
+  __onAuthenticated(data) {
+    if (data.ok === 'error')
+      throw new Error(`Authentication error '${data.data.error}'.`);
+
     this.__orderBookSubscribe();
     this.__pairRoomSubscribe();
   }
