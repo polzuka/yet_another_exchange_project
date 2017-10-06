@@ -212,7 +212,7 @@ module.exports = {
         "prefer-spread": "off",
         "prefer-template": "off",
         "quote-props": "off",
-        "quotes": "off",
+        "quotes": "on",
         "radix": "off",
         "require-await": "error",
         "require-jsdoc": "off",

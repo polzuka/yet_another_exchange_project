@@ -21,7 +21,7 @@ function getChartItem(trade, books) {
     const i = mics[book.mic];
     if (book.sellSide.length)
       chartItem[`sell${i}`] = book.sellSide[0][0];
-    
+
     if (book.buySide.length)
       chartItem[`buy${i}`] = book.buySide[0][0];
   });
@@ -41,7 +41,7 @@ async function getHistoryData(batchId) {
 
   const nonce = rows.length ? rows[rows.length - 1].nonce : 0;
 
-  console.log(JSON.stringify(chartData));
+  // console.log(JSON.stringify(chartData));
 
   return {
     chartData,

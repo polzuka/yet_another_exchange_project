@@ -8,14 +8,14 @@ require('../stylesheets/main.css');
 
 
 function createChart() {
-  return AmCharts.makeChart( "chart", {
-    type: "serial",
-    categoryField: "date",
+  return AmCharts.makeChart('chart', {
+    type: 'serial',
+    categoryField: 'date',
     autoMarginOffset: 10,
     marginRight: 10,
     marginTop: 10,
     fontSize: 12,
-    theme: "light",
+    theme: 'light',
 
     legend: {
       equalWidths: false,
@@ -28,7 +28,16 @@ function createChart() {
 
     categoryAxis: {
       parseDates: true, 
-      minPeriod: 'ss'
+      minPeriod: 'fff',
+      // dateFormats: [{period:'fff',format:'JJ:NN:SS.QQQ'},
+      // {period:'ss',format:'JJ:NN:SS.QQQ'},
+      // {period:'mm',format:'JJ:NN'},
+      // {period:'hh',format:'JJ:NN'},
+      // {period:'DD',format:'MMM DD'},
+      // {period:'WW',format:'MMM DD'},
+      // {period:'MM',format:'MMM'},
+      // {period:'YYYY',format:'YYYY'}],
+      // groupToPeriods: ['fff', 'ss']
     },
 
     chartCursor: {
@@ -41,6 +50,7 @@ function createChart() {
       valueLineAlpha: 0.5,
       zoomable: false,
       valueZoomable: true,
+      categoryBalloonDateFormat: 'JJ:NN:SS.QQQ'
     },
 
     chartScrollbar: {
@@ -48,13 +58,13 @@ function createChart() {
       graph: 'g1',
       graphType: 'line',
       scrollbarHeight: 30,
-      usePeriod: 'ss',
+      usePeriod: 'fff',
       oppositeAxis: false
     },
 
     valueScrollbar: {
       autoGridCount: true,
-      color: "#000000",
+      color: '#000000',
       scrollbarHeight: 30
     },
 
@@ -63,7 +73,7 @@ function createChart() {
         bulletAlpha: 0,
         bulletBorderAlpha: 1,
         bulletBorderThickness: 1,
-        balloonText: "[[volume]]",
+        balloonText: '[[volume]]',
         id: 'g1',
         valueField: 'price1',
         type: 'line',
@@ -80,7 +90,7 @@ function createChart() {
         bulletAlpha: 0,
         bulletBorderAlpha: 1,
         bulletBorderThickness: 1,
-        balloonText: "[[volume]]",
+        balloonText: '[[volume]]',
         id: 'g2',
         valueField: 'price2',
         type: 'line',
@@ -98,12 +108,8 @@ function createChart() {
         valueField: 'sell1',
         type: 'line',
         fillAlphas: 0,
-        // lineThickness: 0,
-        // bullet: 'custom',
-        // customBullet: window.location.origin + '/images/red_line.svg',
         bulletColor: 'red',
         lineColor: 'red',
-        // bulletSizeField: 'bulletSize',
         bulletSize: 0,
         showBalloon: false
       },
@@ -112,12 +118,8 @@ function createChart() {
         valueField: 'sell2',
         type: 'line',
         fillAlphas: 0,
-        // lineThickness: 0,
-        // bullet: 'custom',
-        // customBullet: window.location.origin + '/images/red_line.svg',
         bulletColor: 'red',
         lineColor: 'red',
-        // bulletSizeField: 'bulletSize',
         bulletSize: 0,
         showBalloon: false
       },
@@ -126,12 +128,8 @@ function createChart() {
         valueField: 'buy1',
         type: 'line',
         fillAlphas: 0,
-        // lineThickness: 0,
-        // bullet: 'custom',
-        // customBullet: window.location.origin + '/images/green_line.svg',
         bulletColor: 'green',
         lineColor: 'green',
-        // bulletSizeField: 'bulletSize',
         bulletSize: 0,
         showBalloon: false
       },
@@ -140,62 +138,43 @@ function createChart() {
         valueField: 'buy2',
         type: 'line',
         fillAlphas: 0,
-        // lineThickness: 0,
-        // bullet: 'custom',
-        // customBullet: window.location.origin + '/images/green_line.svg',
         bulletColor: 'green',
         lineColor: 'green',
-        // bulletSizeField: 'bulletSize',
         bulletSize: 0,
         showBalloon: false
       }
     ],
-    "guides": [
-      {
-        "id": "Guide-1"
-      },
-      {
-        "id": "Guide-2"
-      }
-    ],
-    "valueAxes": [
-      {
-        "id": "ValueAxis-1"
-      }
-    ],
-    periodSelector: {
-      position: "bottom",
-      periods: [ {
-        period: "ss",
-        count: 1,
-        label: "1 sec"
-      }, {
-        period: "ss",
-        count: 100,
-        label: "100 sec"
-      }, {
-        period: "DD",
-        count: 10,
-        label: "10 days"
-      }, {
-        period: "MM",
-        selected: true,
-        count: 1,
-        label: "1 month"
-      }, {
-        period: "YYYY",
-        count: 1,
-        label: "1 year"
-      }, {
-        period: "YTD",
-        label: "YTD"
-      }, {
-        period: "MAX",
-        label: "MAX"
-      } ]
-    },
-    "allLabels": [],
-    "titles": [],
+    // periodSelector: {
+    //   position: "bottom",
+    //   periods: [ {
+    //     period: "ss",
+    //     count: 1,
+    //     label: "1 sec"
+    //   }, {
+    //     period: "ss",
+    //     count: 100,
+    //     label: "100 sec"
+    //   }, {
+    //     period: "DD",
+    //     count: 10,
+    //     label: "10 days"
+    //   }, {
+    //     period: "MM",
+    //     selected: true,
+    //     count: 1,
+    //     label: "1 month"
+    //   }, {
+    //     period: "YYYY",
+    //     count: 1,
+    //     label: "1 year"
+    //   }, {
+    //     period: "YTD",
+    //     label: "YTD"
+    //   }, {
+    //     period: "MAX",
+    //     label: "MAX"
+    //   } ]
+    // },
     "dataProvider": []
   } );
 }
@@ -248,61 +227,65 @@ chart.addListener('rendered', () => {
   loader.hide();
 });
 
-let nonce;
-let batchId;
-let intervalId;
 
-function updateChart(data) {
-  if (!data.length)
-    return;
+class Viewer {
+  constructor(chart) {
+    this.chart = chart;
 
-  chart.dataProvider = chart.dataProvider.concat(data);
-  chart.validateData();
-}
-
-function start() {
-  batchId = $('#chart').attr('batchId');
-  const uri = window.location.origin.replace('http', 'ws');
-  const ws = new WebSocket(uri + '/ws/data');
-
-  ws.onopen = () => {
-    const historyRequestObject = {
-      type: 'history',
-      batchId: batchId
-    };
-    ws.send(JSON.stringify(historyRequestObject));
-
-    intervalId = setInterval(() => {
-      const updateRequestObject = {
-        type: 'update',
-        nonce,
-        batchId
-      };
-
-      ws.send(JSON.stringify(updateRequestObject));
-    }, 1000);
-  };
-
-  ws.onmessage = event => {
-    const data = JSON.parse(event.data);
-    updateChart(data.chartData);
-    nonce = data.nonce;
-    batchId = data.batchId;
-  };
-
-  ws.onclose = () => {
-    clearInterval(intervalId);
-    start();
+    $('#batches select').change(event => {
+      window.location.href = window.location.origin + '?batchId=' + $(event.target).find('option:selected').attr('batchId')
+    });
   }
 
-  ws.onerror = event => {
-    console.log(event);
-  };
+  updateChart(data) {
+    if (!data.length)
+      return;
+
+    chart.dataProvider = chart.dataProvider.concat(data);
+    chart.validateData();
+  }
+
+  start() {
+    this.batchId = $('#chart').attr('batchId');
+    const uri = window.location.origin.replace('http', 'ws');
+    const ws = new WebSocket(uri + '/ws/data');
+
+    ws.onopen = () => {
+      const historyRequestObject = {
+        type: 'history',
+        batchId: this.batchId
+      };
+      ws.send(JSON.stringify(historyRequestObject));
+
+      this.intervalId = setInterval(() => {
+        const updateRequestObject = {
+          type: 'update',
+          nonce: this.nonce,
+          batchId: this.batchId
+        };
+
+        ws.send(JSON.stringify(updateRequestObject));
+      }, 1000);
+    };
+
+    ws.onmessage = event => {
+      const data = JSON.parse(event.data);
+      this.updateChart(data.chartData);
+      this.nonce = data.nonce;
+      this.batchId = data.batchId;
+    };
+
+    ws.onclose = () => {
+      clearInterval(this.intervalId);
+      this.start();
+    }
+
+    ws.onerror = event => {
+      console.log(event);
+    };
+  }
 }
 
-$(document).ready(() => {
-  start();
-  $('#batches select').change(event => {
-    window.location.href = window.location.origin + '?batchId=' + $(event.target).find('option:selected').attr('batchId')
-  });
-});
+const viewer = new Viewer(chart);
+
+$(document).ready(() => viewer.start());
