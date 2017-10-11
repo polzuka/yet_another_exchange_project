@@ -13,8 +13,8 @@ class Connector extends EventEmitter {
     if (this.constructor.mic === undefined)
       throw new Error('MIC (market identification code) must be specified.');
 
-    this.pair = pair, 
-    this.splittedPair = [pair.substr(0, 3), pair.substr(3)];
+    this.pair = pair,
+    this.splittedPair = pair.split('-');
     this.apiKey = apiKey;
     this.apiSecret = apiSecret;
     this.depth = depth;
@@ -35,7 +35,7 @@ class Connector extends EventEmitter {
     let s = `\nASKS${' '.repeat(maxAsksLength)}BIDS\n`;
     for (let i = 0; i < this.depth; i++)
       s += asks[i] + ' '.repeat(maxAsksLength - (asks[i] || '').length + 4) + bids[i] + '\n';
-    // logger.debug(s);
+    logger.info(s);
   }
 
   __normalizeBookInfo(book) {
@@ -45,7 +45,15 @@ class Connector extends EventEmitter {
       ts: book.ts,
       pair: this.pair,
       mic: this.constructor.mic
-    }
+    };
+  }
+
+  getBook() {
+    return new Promise(resolve => {
+      if (this.isSynchronized)
+        return resolve(this.__normalizeBookInfo(this.book));
+      this.once('synchronized', () => resolve(this.__normalizeBookInfo(this.book)));
+    });
   }
 }
 

@@ -31,13 +31,12 @@ function getChartItem(trade, books) {
 }
 
 async function getHistoryData(batchId) {
-  console.log({batchId})
   if (batchId === undefined) 
     batchId = await db.trades.getLastBatchId();
   const rows = await db.trades.getBatchTrades(batchId) || [];
 
   // const chartData = rows.slice(0, 10).map(({trade, books, nonce}) => getChartItem(trade, books));
-  const chartData = rows.map(({trade, books, nonce}) => getChartItem(trade, books));
+  const chartData = rows.map(({trade, books}) => getChartItem(trade, books));
 
   const nonce = rows.length ? rows[rows.length - 1].nonce : 0;
 
@@ -53,7 +52,7 @@ async function getHistoryData(batchId) {
 async function getUpdateData(batchId, oldNonce) {
   const rows = await db.trades.getBatchTrades(batchId, oldNonce) || [];
 
-  const chartData = rows.map(({trade, books, nonce}) => getChartItem(trade, books));
+  const chartData = rows.map(({trade, books}) => getChartItem(trade, books));
 
   const nonce = rows.length ? rows[rows.length - 1].nonce : oldNonce;
 

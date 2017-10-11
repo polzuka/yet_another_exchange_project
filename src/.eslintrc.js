@@ -127,7 +127,7 @@ module.exports = {
         "no-multi-assign": "off",
         "no-multi-spaces": "off",
         "no-multi-str": "error",
-        "no-multiple-empty-lines": "off",
+        "no-multiple-empty-lines": ["error", {"max": 2}],
         "no-native-reassign": "error",
         "no-negated-condition": "off",
         "no-negated-in-lhs": "error",
@@ -163,7 +163,7 @@ module.exports = {
         "no-template-curly-in-string": "error",
         "no-ternary": "off",
         "no-throw-literal": "off",
-        "no-trailing-spaces": "off",
+        "no-trailing-spaces": "error",
         "no-undef-init": "off",
         "no-undefined": "off",
         "no-underscore-dangle": "off",
@@ -212,12 +212,12 @@ module.exports = {
         "prefer-spread": "off",
         "prefer-template": "off",
         "quote-props": "off",
-        "quotes": "on",
+        "quotes": ["error", "single"],
         "radix": "off",
         "require-await": "error",
         "require-jsdoc": "off",
         "rest-spread-spacing": "error",
-        "semi": "off",
+        "semi": "error",
         "semi-spacing": "off",
         "semi-style": "off",
         "sort-imports": "error",
@@ -249,6 +249,23 @@ module.exports = {
         "wrap-iife": "off",
         "wrap-regex": "off",
         "yield-star-spacing": "error",
-        "yoda": "off"
-    }
+        "yoda": "off",
+
+        "require-path-exists/exists": [ 2, {
+          "extensions": [
+            "",
+            ".js",
+            ".jsx",
+            ".es.js",
+            ".jsx",
+            ".json5",
+            ".es",
+            ".es6",
+            ".coffee"
+          ],
+        }]
+    },
+    "plugins": [
+        "require-path-exists"
+    ],
 };

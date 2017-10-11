@@ -8,7 +8,6 @@ const ConnectorLoggingContainer = require('../logger');
 const logger = ConnectorLoggingContainer.add('bitfinex');
 
 
-
 const BITFINEX_WS_URL = 'wss://api.bitfinex.com/ws/2';
 const CHECK_SOCKET_ALIVE_INTERVAL_MS = 1000;
 
@@ -50,7 +49,7 @@ class BitfinexConnector extends Connector {
   }
 
   __checkSocketAlive() {
-    if (this.lastMessageTs && Date.now() - this.lastMessageTs > 10000) 
+    if (this.lastMessageTs && Date.now() - this.lastMessageTs > 10000)
       this.ws.close();
   }
 
@@ -87,16 +86,16 @@ class BitfinexConnector extends Connector {
   __tradesSubscribe() {
     this.__sendRequest({
       event: 'subscribe',
-      channel: 'trades', 
-      symbol: `t${this.pair}` 
+      channel: 'trades',
+      symbol: `t${this.splittedPair.join('')}`
     });
   }
 
   __bookSubscribe() {
     this.__sendRequest({
       event: 'subscribe',
-      channel: 'book', 
-      symbol: `t${this.pair}`,
+      channel: 'book',
+      symbol: `t${this.splittedPair.join('')}`,
       prec: 'P0',
       freq: 'F0',
       len: this.realDepth
@@ -105,7 +104,7 @@ class BitfinexConnector extends Connector {
 
   __onSubscribed(data) {
     switch (data.channel) {
-      case 'trades': 
+      case 'trades':
         this.tradesChanId = data.chanId;
         return;
       case 'book':
@@ -145,33 +144,35 @@ class BitfinexConnector extends Connector {
     this.book.sellSide = new SortedMap([]);
 
     positions.forEach(([price, , amount]) => {
-      if (amount > 0) 
+      if (amount > 0)
         this.book.buySide.set(price, amount);
       else
         this.book.sellSide.set(price, -amount);
 
     });
+
+    // Времени с биржи нет.
     this.book.ts = Date.now();
     this.isSynchronized = true;
     this.emit('synchronized');
-    this.__showBook();
+    // this.__showBook();
   }
 
   __onBookUpdate([price, count, amount]) {
     if (count > 0) {
-      if (amount > 0) 
+      if (amount > 0)
         this.book.buySide.set(price, amount);
       else
         this.book.sellSide.set(price, -amount);
     } else {
-      if (amount > 0) 
+      if (amount > 0)
         this.book.buySide.delete(price);
       else
         this.book.sellSide.delete(price);
     }
     this.book.ts = Date.now();
 
-    this.__showBook();
+    // this.__showBook();
   }
 
   __normalizeTradeInfo([, mts, amount, price]) {
@@ -179,7 +180,7 @@ class BitfinexConnector extends Connector {
       mic: this.constructor.mic,
       pair: this.pair,
       side: amount > 0 ? 'BUY' : 'SELL',
-      ts: mts, 
+      ts: mts,
       amount: amount > 0 ? amount : -amount,
       price: price
     };
@@ -189,18 +190,9 @@ class BitfinexConnector extends Connector {
     const [, event, trade] = data;
     switch (event) {
       case 'hb': return;
-      case 'te': 
+      case 'te':
         return this.emit('trade', this.__normalizeTradeInfo(trade));
     }
-  }
-
-
-  getBook() {
-    return new Promise(resolve => {
-      if (this.isSynchronized)
-        return resolve(this.__normalizeBookInfo(this.book));
-      this.once('synchronized', () => resolve(this.__normalizeBookInfo(this.book)));
-    });
   }
 }
 

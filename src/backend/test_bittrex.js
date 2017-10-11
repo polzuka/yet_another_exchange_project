@@ -17,15 +17,8 @@ async function onTrade(trade, connector) {
 }
 
 async function main() {
-  const connectorList = await Promise.all([
-    connectors.create('CEXIO', 'BTC-USD', CEX_KEY, CEX_SECRET, 10),
-    connectors.create('BITFINEX', 'BTC-USD', CEX_KEY, CEX_SECRET, 10)
-  ]);
-
-  const [cex, ] = connectorList;
-  connectorList.forEach(connector => {
-    connector.on('trade', trade => onTrade(trade, cex));
-  });
+  const bittrex = await connectors.create('BITTREX', 'USDT-BTC', CEX_KEY, CEX_SECRET, 10);
+  bittrex.on('trade', trade => onTrade(trade, bittrex));
 }
 
 main();
