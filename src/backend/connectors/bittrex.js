@@ -1,8 +1,6 @@
 'use strict';
 
-const crypto = require('crypto');
 const rp = require('request-promise');
-const querystring = require('querystring');
 const SortedMap = require('collections/sorted-map');
 const Connector = require('./connector');
 const ConnectorLoggingContainer = require('../logger');
