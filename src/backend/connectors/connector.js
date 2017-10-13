@@ -13,8 +13,8 @@ class Connector extends EventEmitter {
     if (this.constructor.mic === undefined)
       throw new Error('MIC (market identification code) must be specified.');
 
-    this.pair = pair, 
-    this.splittedPair = [pair.substr(0, 3), pair.substr(3)];
+    this.pair = pair,
+    this.splittedPair = pair.split('_');
     this.apiKey = apiKey;
     this.apiSecret = apiSecret;
     this.depth = depth;
@@ -25,6 +25,15 @@ class Connector extends EventEmitter {
       sellSide: null,
       dt: null
     };
+
+    // Если делать стакан глубиной depth, то он часто опустошается и приходится его переподгружать.
+    // Поэтому реальная глубина стакана будет depth <= realDepth <= maxDepth
+    this.maxDepth = Math.round(this.depth * 1.1);
+  }
+
+  init() {
+    // Флаг показывающий, актуален ли стакан у коннектора
+    this.isSynchronized = false;
   }
 
   __showBook() {
@@ -46,6 +55,14 @@ class Connector extends EventEmitter {
       pair: this.pair,
       mic: this.constructor.mic
     }
+  }
+
+  getBook() {
+    return new Promise(resolve => {
+      if (this.isSynchronized)
+        return resolve(this.__normalizeBookInfo(this.book));
+      this.once('synchronized', () => resolve(this.__normalizeBookInfo(this.book)));
+    });
   }
 }
 
