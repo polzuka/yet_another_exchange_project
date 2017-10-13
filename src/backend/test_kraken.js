@@ -17,7 +17,8 @@ async function onTrade(trade, connector) {
 }
 
 async function main() {
-  const bittrex = await connectors.create('KRAKEN', 'XBT-USD', CEX_KEY, CEX_SECRET, 10);
+  const bittrex = await connectors.create('BITMEX', 'XBT-USD', CEX_KEY, CEX_SECRET, 10);
+  // const bittrex = await connectors.create('KRAKEN', 'XBT-USD', CEX_KEY, CEX_SECRET, 10);
   bittrex.on('trade', trade => onTrade(trade, bittrex));
 }
 

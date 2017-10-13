@@ -1,9 +1,16 @@
 'use strict';
 
-const CexConnector = require('./cex');
-const BitfinexConnector = require('./bitfinex');
-const BittrexConnector = require('./bittrex');
-const KrakenConnector = require('./kraken');
+const connectors = [
+  require('./cex'),
+  require('./bitfinex'),
+  require('./bittrex'),
+  require('./kraken'),
+  require('./bitmex')
+].reduce((connectors, connector) => {
+  connectors[connector.mic] = connector;
+  return connectors;
+}, {});
+
 const ConnectorLoggingContainer = require('../logger');
 
 const logger = ConnectorLoggingContainer.add('connectors');
@@ -12,13 +19,10 @@ const logger = ConnectorLoggingContainer.add('connectors');
 class Connectors {
 
   __getConstructor(mic) {
-    switch (mic) {
-      case 'CEXIO': return CexConnector;
-      case 'BITFINEX': return BitfinexConnector;
-      case 'BITTREX': return BittrexConnector;
-      case 'KRAKEN': return KrakenConnector;
-      default: throw new Error(`Unknown connector mic '${mic}'`);
-    }
+    const connector = connectors[mic];
+    if (!connector)
+      throw new Error(`Unknown connector mic '${mic}'`);
+    return connector;
   }
 
   create(mic, pair, apiKey, apiSecret, depth) {
