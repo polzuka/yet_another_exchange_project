@@ -51,7 +51,7 @@ class BittrexConnector extends Connector {
       if (index === -1)
         logger.warn('No trades intersection.');
       const newTrades = index === -1 ? trades : trades.slice(0, index);
-      newTrades.forEach(trade => this.emit('trade', this.__normalizeTradeInfo(trade)));
+      newTrades.reverse().forEach(trade => this.emit('trade', this.__normalizeTradeInfo(trade)));
     }
 
     this.oldTrades = trades;

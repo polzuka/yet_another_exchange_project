@@ -2,9 +2,23 @@
 
 const db = require('../../backend/db');
 
-const mics = {CEXIO: 1, BITFINEX: 2};
+function compareTradesByTs(a, b) {
+  return a.trade.ts - b.trade.ts;
+}
+
+function getMics([mic1, mic2]) {
+  const mics = {};
+
+  if (mic1 > mic2)
+    [mic1, mic2] = [mic2, mic1];
+
+  mics[mic1] = 1;
+  mics[mic2] = 2;
+  return mics;
+}
 
 function getChartItem(trade, books) {
+  const mics = getMics(books.books.map(book => book.mic));
   const i = mics[trade.mic];
   const chartItem = {
     date: new Date(trade.ts),
@@ -25,22 +39,23 @@ function getChartItem(trade, books) {
     if (book.buySide.length)
       chartItem[`buy${i}`] = book.buySide[0][0];
   });
-  
 
   return chartItem;
 }
 
 async function getHistoryData(batchId) {
-  if (batchId === undefined) 
+  if (batchId === undefined)
     batchId = await db.trades.getLastBatchId();
+
   const rows = await db.trades.getBatchTrades(batchId) || [];
 
-  // const chartData = rows.slice(0, 10).map(({trade, books, nonce}) => getChartItem(trade, books));
-  const chartData = rows.map(({trade, books}) => getChartItem(trade, books));
+  const nonce = rows.length
+    ? rows[rows.length - 1].nonce
+    : 0;
 
-  const nonce = rows.length ? rows[rows.length - 1].nonce : 0;
-
-  // console.log(JSON.stringify(chartData));
+  const chartData = rows
+    .sort(compareTradesByTs)
+    .map(({trade, books}) => getChartItem(trade, books));
 
   return {
     chartData,
@@ -52,13 +67,17 @@ async function getHistoryData(batchId) {
 async function getUpdateData(batchId, oldNonce) {
   const rows = await db.trades.getBatchTrades(batchId, oldNonce) || [];
 
-  const chartData = rows.map(({trade, books}) => getChartItem(trade, books));
+  const nonce = rows.length
+    ? rows[rows.length - 1].nonce
+    : oldNonce;
 
-  const nonce = rows.length ? rows[rows.length - 1].nonce : oldNonce;
+  const chartData = rows
+    .sort(compareTradesByTs)
+    .map(({trade, books}) => getChartItem(trade, books));
 
   return {
     chartData,
-    nonce, 
+    nonce,
     batchId
   };
 }

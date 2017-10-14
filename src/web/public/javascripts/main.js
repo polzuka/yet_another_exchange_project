@@ -6,7 +6,6 @@ require('../amcharts/plugins/export/export.min.js');
 require('../amcharts/themes/light.js');
 require('../stylesheets/main.css');
 
-
 function createChart() {
   return AmCharts.makeChart('chart', {
     type: 'serial',
@@ -27,7 +26,7 @@ function createChart() {
     },
 
     categoryAxis: {
-      parseDates: true, 
+      parseDates: true,
       minPeriod: 'fff',
       // dateFormats: [{period:'fff',format:'JJ:NN:SS.QQQ'},
       // {period:'ss',format:'JJ:NN:SS.QQQ'},
@@ -238,10 +237,24 @@ class Viewer {
   }
 
   updateChart(data) {
+    // Если ничего не пришло, ничего не делаем
     if (!data.length)
       return;
 
-    chart.dataProvider = chart.dataProvider.concat(data);
+    if (chart.dataProvider.length) {
+      data.forEach(trade => {
+        console.log(trade, chart.dataProvider)
+        for (let i = chart.dataProvider.length - 1; i >= 0; i--) {
+          console.log(chart.dataProvider[i].date)
+          if (chart.dataProvider[i].date < trade.date) {
+            chart.dataProvider.splice(i + 1, 0, trade);
+            break;
+          }
+        }
+      });
+    } else
+      chart.dataProvider = data;
+
     chart.validateData();
   }
 
@@ -278,7 +291,7 @@ class Viewer {
     ws.onclose = () => {
       clearInterval(this.intervalId);
       this.start();
-    }
+    };
 
     ws.onerror = event => {
       console.log(event);
