@@ -22,10 +22,10 @@ async function onTrade(trade, connectorList) {
 
 async function main() {
   const connectorList = await Promise.all([
-    // connectors.create('CEXIO', 'BTC-USD', CEX_KEY, CEX_SECRET, 10),
-    // connectors.create('BITFINEX', 'BTC-USD', CEX_KEY, CEX_SECRET, 10)
-    connectors.create('BITTREX', 'USDT-BTC', '', '', 10),
-   connectors.create('BITFINEX', 'BTC-USD', '', '', 10)
+    // connectors.create({mic: 'CEXIO', pair: 'BTC-USD', apiKey: CEX_KEY, apiSecret: CEX_SECRET, depth: 10}),
+    // connectors.create({mic: 'CEXIO', pair: 'BTC-USD', apiKey: CEX_KEY, apiSecret: CEX_SECRET, depth: 10})
+    connectors.create({mic: 'BITTREX', pair: 'USDT-BTC', apiKey: '', apiSecret: '', depth: 10}),
+   connectors.create({mic: 'BITFINEX', pair: 'BTC-USD', apiKey: '', apiSecret: '', depth: 10})
   ]);
 
   connectorList.forEach(connector => {

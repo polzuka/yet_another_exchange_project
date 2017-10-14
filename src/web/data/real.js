@@ -6,10 +6,11 @@ function compareTradesByTs(a, b) {
   return a.trade.ts - b.trade.ts;
 }
 
-function getMics([mic1, mic2]) {
+function getMics(books) {
+  let [mic1, mic2] = books.map(book => book.mic);
   const mics = {};
 
-  if (mic1 > mic2)
+  if (mic1 < mic2)
     [mic1, mic2] = [mic2, mic1];
 
   mics[mic1] = 1;
@@ -18,7 +19,7 @@ function getMics([mic1, mic2]) {
 }
 
 function getChartItem(trade, books) {
-  const mics = getMics(books.books.map(book => book.mic));
+  const mics = getMics(books.books);
   const i = mics[trade.mic];
   const chartItem = {
     date: new Date(trade.ts),

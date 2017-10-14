@@ -8,7 +8,7 @@ body {
 #chartWrapper {
     height: 100vh;
     position: absolute;
-    right: 300px;
+    right: 350px;
     left: 0px;
 }
 
@@ -22,7 +22,7 @@ body {
 
 
 #booksWrapper {
-    width: 300px;
+    width: 350px;
     position: absolute;
     right: 0;
     height: 100vh;

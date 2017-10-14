@@ -208,10 +208,12 @@ chart.addListener('rollOverGraphItem', event => {
   const booksDiv = $('#books');
   booksDiv.empty();
   const books = event.item.dataContext.books;
+  const mics = getMics(books);
 
-  books.forEach((book, i) => {
-    const bookDiv = addNode(booksDiv, `book${i + 1}`);
-    addNode(bookDiv, 'header', `MARKET ${i + 1} - ${book.mic}`);
+  books.forEach(book => {
+    const index = mics[book.mic];
+    const bookDiv = addNode(booksDiv, `book${index}`);
+    addNode(bookDiv, 'header', `MARKET ${index} - ${book.mic}`);
     const asksDiv = addNode(bookDiv, 'asks');
     const bidsDiv = addNode(bookDiv, 'bids');
     addNode(asksDiv, 'header', 'Sell side');
@@ -225,6 +227,18 @@ chart.addListener('rendered', () => {
   const loader = $('#loader');
   loader.hide();
 });
+
+function getMics(books) {
+  let [mic1, mic2] = books.map(book => book.mic);
+  const mics = {};
+
+  if (mic1 < mic2)
+    [mic1, mic2] = [mic2, mic1];
+
+  mics[mic1] = 1;
+  mics[mic2] = 2;
+  return mics;
+}
 
 
 class Viewer {
@@ -243,9 +257,7 @@ class Viewer {
 
     if (chart.dataProvider.length) {
       data.forEach(trade => {
-        console.log(trade, chart.dataProvider)
         for (let i = chart.dataProvider.length - 1; i >= 0; i--) {
-          console.log(chart.dataProvider[i].date)
           if (chart.dataProvider[i].date < trade.date) {
             chart.dataProvider.splice(i + 1, 0, trade);
             break;

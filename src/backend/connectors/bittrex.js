@@ -35,10 +35,12 @@ class BittrexConnector extends Connector {
   }
 
   __normalizeTradeInfo({TimeStamp, Quantity, Price, OrderType}) {
+    console.log(TimeStamp)
     return {
       mic: this.constructor.mic,
       pair: this.pair,
       side: OrderType,
+      // Добавим gmt, чтобы парсил как utc
       ts: new Date(TimeStamp).getTime(),
       amount: Quantity,
       price: Price

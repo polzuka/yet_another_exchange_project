@@ -25,7 +25,7 @@ class Connectors {
     return connector;
   }
 
-  create(mic, pair, apiKey, apiSecret, depth) {
+  create({mic, pair, apiKey, apiSecret, depth}) {
     const connectorConstructor = this.__getConstructor(mic);
     const connector = new connectorConstructor(pair, apiKey, apiSecret, depth);
     return new Promise(resolve => {
