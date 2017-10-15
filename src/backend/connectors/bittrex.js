@@ -41,7 +41,7 @@ class BittrexConnector extends Connector {
       pair: this.pair,
       side: OrderType,
       // Добавим gmt, чтобы парсил как utc
-      ts: new Date(TimeStamp).getTime(),
+      ts: new Date(TimeStamp + 'Z').getTime(),
       amount: Quantity,
       price: Price
     };
