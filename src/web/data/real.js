@@ -1,6 +1,7 @@
 'use strict';
 
 const db = require('../../backend/db');
+const offset = new Date().getTimezoneOffset();
 
 function compareTradesByTs(a, b) {
   return a.trade.ts - b.trade.ts;
@@ -21,8 +22,9 @@ function getMics(books) {
 function getChartItem(trade, books) {
   const mics = getMics(books.books);
   const i = mics[trade.mic];
+
   const chartItem = {
-    date: new Date(trade.ts),
+    date: new Date(trade.ts + offset * 60000),
     volume: trade.amount,
     // bulletSize: trade.amount * 10,
     bulletSize: 7,
