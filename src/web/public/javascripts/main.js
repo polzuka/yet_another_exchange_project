@@ -188,7 +188,6 @@ function addNode(parent, childClass, text) {
   return childDiv;
 }
 
-
 function fillItems(items, div) {
   const pricesDiv = addNode(div, 'prices');
   const amountsDiv = addNode(div, 'amounts');
@@ -211,7 +210,7 @@ chart.addListener('rollOverGraphItem', event => {
   const mics = getMics(books);
 
   books.forEach(book => {
-    const index = mics[book.mic];
+    const index = mics[book.mic + book.pair];
     const bookDiv = addNode(booksDiv, `book${index}`);
     addNode(bookDiv, 'header', `MARKET ${index} - ${book.mic}`);
     const asksDiv = addNode(bookDiv, 'asks');
@@ -229,7 +228,7 @@ chart.addListener('rendered', () => {
 });
 
 function getMics(books) {
-  let [mic1, mic2] = books.map(book => book.mic);
+  let [mic1, mic2] = books.map(book => book.mic + book.pair);
   const mics = {};
 
   if (mic1 < mic2)
@@ -240,14 +239,9 @@ function getMics(books) {
   return mics;
 }
 
-
 class Viewer {
   constructor(chart) {
     this.chart = chart;
-
-    $('#batches select').change(event => {
-      window.location.href = window.location.origin + '?batchId=' + $(event.target).find('option:selected').attr('batchId')
-    });
   }
 
   updateChart(data) {
@@ -271,6 +265,10 @@ class Viewer {
   }
 
   start() {
+    $('#batches select').change(event => {
+      window.location.href = window.location.origin + '?batchId=' + $(event.target).find('option:selected').attr('batchId');
+    });
+
     this.batchId = $('#chart').attr('batchId');
     const uri = window.location.origin.replace('http', 'ws');
     const ws = new WebSocket(uri + '/ws/data');

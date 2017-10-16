@@ -8,7 +8,7 @@ function compareTradesByTs(a, b) {
 }
 
 function getMics(books) {
-  let [mic1, mic2] = books.map(book => book.mic);
+  let [mic1, mic2] = books.map(book => book.mic + book.pair);
   const mics = {};
 
   if (mic1 < mic2)
@@ -21,7 +21,7 @@ function getMics(books) {
 
 function getChartItem(trade, books) {
   const mics = getMics(books.books);
-  const i = mics[trade.mic];
+  const i = mics[trade.mic + trade.pair];
 
   const chartItem = {
     date: new Date(trade.ts + offset * 60000),
@@ -35,7 +35,7 @@ function getChartItem(trade, books) {
   chartItem[`price${i}`] = trade.price;
 
   books.books.forEach(book => {
-    const i = mics[book.mic];
+    const i = mics[book.mic + book.pair];
     if (book.sellSide.length)
       chartItem[`sell${i}`] = book.sellSide[0][0];
 
