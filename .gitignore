@@ -4,3 +4,4 @@ yaep.sublime-project
 yaep.sublime-workspace
 .directory
 *.log
+yarn.lock
