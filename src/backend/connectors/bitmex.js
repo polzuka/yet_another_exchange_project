@@ -1,6 +1,5 @@
 'use strict';
 
-const crypto = require('crypto');
 const WebSocket = require('ws');
 const SortedMap = require('collections/sorted-map');
 const Connector = require('./connector');
@@ -19,6 +18,7 @@ class BitmexConnector extends Connector {
   init() {
     this.book.buySide = new SortedMap([], (a, b) => a === b, (a, b) => b - a);
     this.book.sellSide = new SortedMap([]);
+    this.idToPrice = {};
 
     // Флаг показывающий, актуален ли стакан у коннектора
     this.isSynchronized = false;
@@ -65,7 +65,6 @@ class BitmexConnector extends Connector {
   __subscribe() {
     this.__orderBookSubscribe();
     this.__tradesSubscribe();
-
   }
 
   /**
@@ -115,15 +114,22 @@ class BitmexConnector extends Connector {
   }
 
   __onOrderBookAction(data) {
+    // this.__showBook();
+
     // If you receive any messages before the partial, ignore them.
-    if (!this.synchronized && data.action !== 'partial')
+    if (!this.isSynchronized && data.action !== 'partial')
       return;
 
-    data.data.forEach(({side, size, price}) => {
+    data.data.forEach(({id, side, size, price}) => {
+      if (price)
+        this.idToPrice[id] = price;
+      else
+        price = this.idToPrice[id];
+
       const bookSide = side === 'Buy' ? this.book.buySide : this.book.sellSide;
       data.action === 'delete'
         ? bookSide.delete(price)
-        : bookSide.set(price, 1. * size / price);
+        : bookSide.set(price, (1. * size / price).toFixed(5));
     });
 
     this.__onSynchronized();
