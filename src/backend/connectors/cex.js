@@ -205,7 +205,7 @@ class CexConnector extends Connector {
    */
   __onMessage(message) {
     const data = JSON.parse(message);
-    logger.info('****' + message);
+    // logger.info('****' + message);
 
     switch(data.e) {
       case 'ping': return this.__onPing();

@@ -7,7 +7,7 @@ const logger = ConnectorLoggingContainer.add('connector');
 
 
 class Connector extends EventEmitter {
-  constructor(pair, apiKey, apiSecret, depth) {
+  constructor(pair, apiKey, apiSecret, depth = 10) {
     super();
 
     if (this.constructor.mic === undefined)

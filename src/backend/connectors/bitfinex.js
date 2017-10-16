@@ -191,6 +191,7 @@ class BitfinexConnector extends Connector {
     switch (event) {
       case 'hb': return;
       case 'te':
+      // console.log('%%%', this.__normalizeTradeInfo(trade).ts)
         return this.emit('trade', this.__normalizeTradeInfo(trade));
     }
   }

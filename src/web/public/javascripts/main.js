@@ -6,7 +6,6 @@ require('../amcharts/plugins/export/export.min.js');
 require('../amcharts/themes/light.js');
 require('../stylesheets/main.css');
 
-
 function createChart() {
   return AmCharts.makeChart('chart', {
     type: 'serial',
@@ -27,7 +26,7 @@ function createChart() {
     },
 
     categoryAxis: {
-      parseDates: true, 
+      parseDates: true,
       minPeriod: 'fff',
       // dateFormats: [{period:'fff',format:'JJ:NN:SS.QQQ'},
       // {period:'ss',format:'JJ:NN:SS.QQQ'},
@@ -189,7 +188,6 @@ function addNode(parent, childClass, text) {
   return childDiv;
 }
 
-
 function fillItems(items, div) {
   const pricesDiv = addNode(div, 'prices');
   const amountsDiv = addNode(div, 'amounts');
@@ -209,10 +207,12 @@ chart.addListener('rollOverGraphItem', event => {
   const booksDiv = $('#books');
   booksDiv.empty();
   const books = event.item.dataContext.books;
+  const mics = getMics(books);
 
-  books.forEach((book, i) => {
-    const bookDiv = addNode(booksDiv, `book${i + 1}`);
-    addNode(bookDiv, 'header', `MARKET ${i + 1} - ${book.mic}`);
+  books.forEach(book => {
+    const index = mics[book.mic + book.pair];
+    const bookDiv = addNode(booksDiv, `book${index}`);
+    addNode(bookDiv, 'header', `MARKET ${index} - ${book.mic}`);
     const asksDiv = addNode(bookDiv, 'asks');
     const bidsDiv = addNode(bookDiv, 'bids');
     addNode(asksDiv, 'header', 'Sell side');
@@ -227,25 +227,48 @@ chart.addListener('rendered', () => {
   loader.hide();
 });
 
+function getMics(books) {
+  let [mic1, mic2] = books.map(book => book.mic + book.pair);
+  const mics = {};
+
+  if (mic1 < mic2)
+    [mic1, mic2] = [mic2, mic1];
+
+  mics[mic1] = 1;
+  mics[mic2] = 2;
+  return mics;
+}
 
 class Viewer {
   constructor(chart) {
     this.chart = chart;
-
-    $('#batches select').change(event => {
-      window.location.href = window.location.origin + '?batchId=' + $(event.target).find('option:selected').attr('batchId')
-    });
   }
 
   updateChart(data) {
+    // Если ничего не пришло, ничего не делаем
     if (!data.length)
       return;
 
-    chart.dataProvider = chart.dataProvider.concat(data);
+    if (chart.dataProvider.length) {
+      data.forEach(trade => {
+        for (let i = chart.dataProvider.length - 1; i >= 0; i--) {
+          if (chart.dataProvider[i].date < trade.date) {
+            chart.dataProvider.splice(i + 1, 0, trade);
+            break;
+          }
+        }
+      });
+    } else
+      chart.dataProvider = data;
+
     chart.validateData();
   }
 
   start() {
+    $('#batches select').change(event => {
+      window.location.href = window.location.origin + '?batchId=' + $(event.target).find('option:selected').attr('batchId');
+    });
+
     this.batchId = $('#chart').attr('batchId');
     const uri = window.location.origin.replace('http', 'ws');
     const ws = new WebSocket(uri + '/ws/data');
@@ -278,7 +301,7 @@ class Viewer {
     ws.onclose = () => {
       clearInterval(this.intervalId);
       this.start();
-    }
+    };
 
     ws.onerror = event => {
       console.log(event);

@@ -35,11 +35,13 @@ class BittrexConnector extends Connector {
   }
 
   __normalizeTradeInfo({TimeStamp, Quantity, Price, OrderType}) {
+    console.log(TimeStamp)
     return {
       mic: this.constructor.mic,
       pair: this.pair,
       side: OrderType,
-      ts: new Date(TimeStamp).getTime(),
+      // Добавим gmt, чтобы парсил как utc
+      ts: new Date(TimeStamp + 'Z').getTime(),
       amount: Quantity,
       price: Price
     };
@@ -49,9 +51,9 @@ class BittrexConnector extends Connector {
     if (this.oldTrades) {
       const index = trades.findIndex(trade => trade.Id === this.oldTrades[0].Id);
       if (index === -1)
-        logger.warning('No trades intersection.');
+        logger.warn('No trades intersection.');
       const newTrades = index === -1 ? trades : trades.slice(0, index);
-      newTrades.forEach(trade => this.emit('trade', this.__normalizeTradeInfo(trade)));
+      newTrades.reverse().forEach(trade => this.emit('trade', this.__normalizeTradeInfo(trade)));
     }
 
     this.oldTrades = trades;
