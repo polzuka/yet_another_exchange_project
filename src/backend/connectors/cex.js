@@ -14,10 +14,6 @@ const CEX_WS_URL = 'wss://ws.cex.io/ws/';
 class CexConnector extends Connector {
   constructor(pair, apiKey, apiSecret, depth) {
     super(pair, apiKey, apiSecret, depth);
-
-    // Если делать стакан глубиной depth, то он часто опустошается и приходится его переподгружать.
-    // Поэтому реальная глубина стакана будет depth <= realDepth <= maxDepth
-    this.maxDepth = Math.round(this.depth * 1.1);
     this.requestId = 0;
   }
 
@@ -84,17 +80,6 @@ class CexConnector extends Connector {
         newSide.set(price, amount);
     });
 
-    // Если глубина слишком уменьшилась надо пересосать.
-    if (newSide.length < this.depth)
-      return null;
-
-    // Если стакан стал слишком глубоким, обрежем его.
-    if (newSide.length > this.maxDepth)
-      newSide.keys().forEach((price, i) => {
-        if (i >= this.maxDepth)
-          newSide.delete(price);
-      });
-
     return newSide;
   }
 
@@ -104,15 +89,7 @@ class CexConnector extends Connector {
       return this.__orderBookUnsubscribe();
 
     const newBuySide = this.__updateSide(this.book.buySide, data.data.bids);
-
-    // Стакан стал слишком мелкий.
-    if (!newBuySide)
-      return this.__orderBookUnsubscribe();
-
     const newSellSide = this.__updateSide(this.book.sellSide, data.data.asks);
-
-    if (!newSellSide)
-      return this.__orderBookUnsubscribe();
 
     this.book.buySide = newBuySide;
     this.book.sellSide = newSellSide;
