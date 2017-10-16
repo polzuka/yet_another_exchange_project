@@ -115,6 +115,7 @@ class PoloniexConnector extends Connector {
         break;
 
       case "o":
+        // logger.info(e);
         this.__updateOrderBook(e);
         break;
 
@@ -147,7 +148,7 @@ class PoloniexConnector extends Connector {
     const s = side == BUY_SIDE ? this.book.buySide : this.book.sellSide;
 
     if (parseFloat(amount) == 0) {
-      s.delete(price);
+      s.delete(Number(price));
 
       // Если глубина стакана недостаточная, то пересасываем
       if (s.length < this.depth)
