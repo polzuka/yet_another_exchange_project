@@ -3,6 +3,8 @@
 const CexConnector = require('./cex');
 const BitfinexConnector = require('./bitfinex');
 const PoloniexConnector = require('./poloniex');
+const BittrexConnector = require('./bittrex');
+const KrakenConnector = require('./kraken');
 const ConnectorLoggingContainer = require('../logger');
 
 const logger = ConnectorLoggingContainer.add('connectors');
@@ -15,6 +17,8 @@ class Connectors {
       case 'CEXIO': return CexConnector;
       case 'BITFINEX': return BitfinexConnector;
       case 'POLONIEX': return PoloniexConnector;
+      case 'BITTREX': return BittrexConnector;
+      case 'KRAKEN': return KrakenConnector;
       default: throw new Error(`Unknown connector mic '${mic}'`);
     }
   }

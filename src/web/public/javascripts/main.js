@@ -20,7 +20,7 @@ function createChart() {
     legend: {
       equalWidths: false,
       useGraphSettings: true,
-      valueAlign: "left",
+      valueAlign: 'left',
       valueWidth: 120,
       valueText: '',
       markerType: 'square'
@@ -175,7 +175,7 @@ function createChart() {
     //     label: "MAX"
     //   } ]
     // },
-    "dataProvider": []
+    'dataProvider': []
   } );
 }
 

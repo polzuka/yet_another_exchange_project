@@ -44,7 +44,7 @@ class Connector extends EventEmitter {
     let s = `\nASKS${' '.repeat(maxAsksLength)}BIDS\n`;
     for (let i = 0; i < this.depth; i++)
       s += asks[i] + ' '.repeat(maxAsksLength - (asks[i] || '').length + 4) + bids[i] + '\n';
-    // logger.debug(s);
+    logger.info(s);
   }
 
   __normalizeBookInfo(book) {
@@ -54,7 +54,15 @@ class Connector extends EventEmitter {
       ts: book.ts,
       pair: this.pair,
       mic: this.constructor.mic
-    }
+    };
+  }
+
+  getBook() {
+    return new Promise(resolve => {
+      if (this.isSynchronized)
+        return resolve(this.__normalizeBookInfo(this.book));
+      this.once('synchronized', () => resolve(this.__normalizeBookInfo(this.book)));
+    });
   }
 
   getBook() {

@@ -38,12 +38,16 @@ class PoloniexConnector extends Connector {
   }
 
   __normalizeSide(side) {
-    Object.keys(side).forEach((p, i) => {
+    const res = [];
+    Object.keys(side).every((p, i) => {
       if (i >= this.maxDepth)
-        delete side[p];
+        return false;
+
+      res.push([Number(p), Number(side[p])]);
+      return true;
     });
 
-    return side;
+    return res;
   }
 
   static __normalizeTradeInfo() {}
@@ -54,6 +58,7 @@ class PoloniexConnector extends Connector {
   }
 
   __onClose(event) {
+    logger.info("Socket closed");
     this.__connect();
   }
 
@@ -100,7 +105,7 @@ class PoloniexConnector extends Connector {
   }
 
   __onUnsubscribe() {
-    this.__subscribe();
+    this.__connect();
   }
 
   __processEvent(e) {
@@ -149,7 +154,7 @@ class PoloniexConnector extends Connector {
         return this.__unsubscribe();
     }
     else
-      s.set(price, amount);
+      s.set(Number(price), Number(amount));
 
     this.book.dt = Date.now();
     // this.__showBook();
@@ -160,7 +165,7 @@ class PoloniexConnector extends Connector {
       mic: this.constructor.mic,
       pair: this.pair,
       side: side == BUY_SIDE ? 'BUY' : 'SELL',
-      ts: parseInt(ts),
+      ts: parseInt(ts) * 1000,
       amount: Number(amount),
       price: Number(price)
     }

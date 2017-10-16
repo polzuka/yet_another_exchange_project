@@ -9,7 +9,6 @@ const ConnectorLoggingContainer = require('../logger');
 const logger = ConnectorLoggingContainer.add('cex');
 
 
-
 const CEX_WS_URL = 'wss://ws.cex.io/ws/';
 
 class CexConnector extends Connector {
@@ -20,9 +19,6 @@ class CexConnector extends Connector {
     // Поэтому реальная глубина стакана будет depth <= realDepth <= maxDepth
     this.maxDepth = Math.round(this.depth * 1.1);
     this.requestId = 0;
-
-    
-    
   }
 
   /**
@@ -67,7 +63,7 @@ class CexConnector extends Connector {
     this.book.ts = data.data.timestamp;
     this.book.id = data.data.id;
     this.__onSynchronized();
-    this.__showBook()
+    // this.__showBook();
   }
 
   /**
@@ -93,7 +89,7 @@ class CexConnector extends Connector {
       return null;
 
     // Если стакан стал слишком глубоким, обрежем его.
-    if (newSide.length > this.maxDepth) 
+    if (newSide.length > this.maxDepth)
       newSide.keys().forEach((price, i) => {
         if (i >= this.maxDepth)
           newSide.delete(price);
@@ -104,7 +100,7 @@ class CexConnector extends Connector {
 
   __updateBook(data) {
     // Если пропустили данные (не совпадает порядковый номер обновления со следующим номером у нас).
-    if (this.book.id + 1 !== data.data.id) 
+    if (this.book.id + 1 !== data.data.id)
       return this.__orderBookUnsubscribe();
 
     const newBuySide = this.__updateSide(this.book.buySide, data.data.bids);
@@ -123,7 +119,7 @@ class CexConnector extends Connector {
     this.book.ts = data.data.time;
     this.book.id = data.data.id;
     this.__onSynchronized();
-    this.__showBook();
+    // this.__showBook();
   }
 
   __createSignature(timestamp, apiKey, apiSecret) {
@@ -168,7 +164,7 @@ class CexConnector extends Connector {
    * Запрос на получение стакана и обновлений к нему.
    */
   __orderBookSubscribe() {
-    logger.debug('Subscribe to book update.')
+    logger.debug('Subscribe to book update.');
     this.__sendRequest({
       e: 'order-book-subscribe',
       data: {
@@ -184,7 +180,7 @@ class CexConnector extends Connector {
    * Запрос на отписку от обновлений стакана.
    */
   __orderBookUnsubscribe() {
-    logger.debug('Unsubscribe to book update.')
+    logger.debug('Unsubscribe to book update.');
     this.isSynchronized = false;
     this.__sendRequest({
       e: 'order-book-unsubscribe',
@@ -219,7 +215,7 @@ class CexConnector extends Connector {
       case 'md_update': return this.__onOrderBookUpdated(data);
       case 'history-update': return this.__onHistoryUpdate(data);
 
-      case 'md': 
+      case 'md':
       case 'history':
       case 'md_groupped':
       case 'ohlcv24':
@@ -257,7 +253,7 @@ class CexConnector extends Connector {
    */
   __onOrderBookSubscribed(data) {
     this.__initBook(data);
-    this.emit('something_event')
+    this.emit('something_event');
   }
 
   /**
@@ -274,7 +270,7 @@ class CexConnector extends Connector {
     if (!this.isSynchronized)
       return;
     this.__updateBook(data);
-    this.emit('something_event')
+    this.emit('something_event');
   }
 
   __normalizeTradeInfo([side, ts, amount, price, ]) {
@@ -282,24 +278,15 @@ class CexConnector extends Connector {
       mic: this.constructor.mic,
       pair: this.pair,
       side: side.toUpperCase(),
-      ts: parseInt(ts, 10), 
+      ts: parseInt(ts, 10),
       amount: Number(amount) / 1e8,
       price: Number(price)
-    }
+    };
   }
-
 
   __onHistoryUpdate(data) {
     data.data.forEach(trade => {
       this.emit('trade',  this.__normalizeTradeInfo(trade));
-    });
-  }
-
-  getBook() {
-    return new Promise(resolve => {
-      if (this.isSynchronized)
-        return resolve(this.__normalizeBookInfo(this.book));
-      this.once('synchronized', () => resolve(this.__normalizeBookInfo(this.book)));
     });
   }
 }
