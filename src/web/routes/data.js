@@ -1,7 +1,11 @@
 'use strict';
 
 const express = require('express');
-const {getHistoryData, getUpdateData} = require('../data/real');
+const {
+  getHistoryData,
+  getUpdateData,
+  getBooksData
+} = require('../data/real');
 const router = express.Router();
 
 async function getData(requestObject) {
@@ -11,6 +15,11 @@ async function getData(requestObject) {
     default: throw new Error(`Unknown type '${requestObject}'.`);
   }
 }
+
+router.get('/data', async (req, res) => {
+  const books = await getBooksData(req.query.tradeId);
+  res.send(books);
+});
 
 /* GET data. */
 router.ws('/data', (ws, req) => {

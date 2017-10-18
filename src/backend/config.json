@@ -1,10 +1,4 @@
 {
-  "CEX_KEY": "",
-  "CEX_SECRET": "",
-
-  "BITFINEX_KEY": "",
-  "BITFINEX_SECRET": "",
-
   "DB_USER": "market",
   "DB_PASSWORD": "market",
   "DB_NAME": "market",

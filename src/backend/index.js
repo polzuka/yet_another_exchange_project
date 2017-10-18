@@ -8,7 +8,7 @@
 
 const connectors = require('./connectors');
 const ConnectorLoggingContainer = require('./logger');
-const {CEX_KEY, CEX_SECRET} = require('./config');
+const markets = require('./markets.json');
 const db = require('./db');
 
 const logger = ConnectorLoggingContainer.add('index');
@@ -21,12 +21,9 @@ async function onTrade(trade, connectorList) {
 }
 
 async function main() {
-  const connectorList = await Promise.all([
-    // connectors.create({mic: 'CEXIO', pair: 'BTC-USD', apiKey: CEX_KEY, apiSecret: CEX_SECRET, depth: 10}),
-    // connectors.create({mic: 'CEXIO', pair: 'BTC-USD', apiKey: CEX_KEY, apiSecret: CEX_SECRET, depth: 10})
-    connectors.create({mic: 'BITTREX', pair: 'USDT-BTC', apiKey: '', apiSecret: '', depth: 10}),
-   connectors.create({mic: 'BITFINEX', pair: 'BTC-USD', apiKey: '', apiSecret: '', depth: 10})
-  ]);
+  const connectorList = await Promise.all(
+    markets.map(market => connectors.create(market))
+  );
 
   connectorList.forEach(connector => {
     connector.on('trade', trade => onTrade(trade, connectorList));
