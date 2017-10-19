@@ -5,3 +5,4 @@ yaep.sublime-workspace
 .directory
 *.log
 yarn.lock
+markets.json
