@@ -7,21 +7,25 @@ function compareTradesByTs(a, b) {
   return a.trade.ts - b.trade.ts;
 }
 
-function getMics(books) {
-  let [mic1, mic2] = books.map(book => book.mic + book.pair);
-  const mics = {};
+function getKeys(books) {
+  let [key1, key2] = books.map(book => getKey(book));
+  const keys = {};
 
-  if (mic1 < mic2)
-    [mic1, mic2] = [mic2, mic1];
+  if (key1 < key2)
+    [key1, key2] = [key2, key1];
 
-  mics[mic1] = 1;
-  mics[mic2] = 2;
-  return mics;
+  keys[key1] = 1;
+  keys[key2] = 2;
+  return keys;
 }
 
-function getChartItem(trade, books) {
-  const mics = getMics(books.books);
-  const i = mics[trade.mic + trade.pair];
+function getKey({mic, pair}) {
+  return mic + pair;
+}
+
+function getChartItem(tradeId, trade, books) {
+  const keys = getKeys(books.books);
+  const i = keys[getKey(trade)];
 
   const chartItem = {
     date: new Date(trade.ts + offset * 60000),
@@ -29,13 +33,13 @@ function getChartItem(trade, books) {
     // bulletSize: trade.amount * 10,
     bulletSize: 7,
     bullet: trade.side === 'SELL' ? 'triangleDown' : 'triangleUp',
-    books: books.books,
+    tradeId
   };
 
   chartItem[`price${i}`] = trade.price;
 
   books.books.forEach(book => {
-    const i = mics[book.mic + book.pair];
+    const i = keys[getKey(book)];
     if (book.sellSide.length)
       chartItem[`sell${i}`] = book.sellSide[0][0];
 
@@ -58,7 +62,7 @@ async function getHistoryData(batchId) {
 
   const chartData = rows
     .sort(compareTradesByTs)
-    .map(({trade, books}) => getChartItem(trade, books));
+    .map(({nonce, trade, books}) => getChartItem(nonce, trade, books));
 
   return {
     chartData,
@@ -76,7 +80,7 @@ async function getUpdateData(batchId, oldNonce) {
 
   const chartData = rows
     .sort(compareTradesByTs)
-    .map(({trade, books}) => getChartItem(trade, books));
+    .map(({nonce, trade, books}) => getChartItem(nonce, trade, books));
 
   return {
     chartData,
@@ -85,7 +89,13 @@ async function getUpdateData(batchId, oldNonce) {
   };
 }
 
+async function getBooksData(tradeId) {
+  const books = await db.trades.getBooks(tradeId);
+  return books;
+}
+
 module.exports = {
   getHistoryData,
-  getUpdateData
+  getUpdateData,
+  getBooksData
 };

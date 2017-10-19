@@ -11,11 +11,13 @@ block content
     #chart(batchId=batchId)
     img#loader(src='images/loader.gif')
   #booksWrapper
-    #books
+  #controlWrapper
     #batches
       select
-        option(selected) Choose option
+        option(selected) Choose batch
         each batch in batches
           option(batchId=batch)= new Date(parseInt(batch, 10))
+      button#update
+
 
     

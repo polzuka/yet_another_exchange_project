@@ -27,16 +27,7 @@ function createChart() {
 
     categoryAxis: {
       parseDates: true,
-      minPeriod: 'fff',
-      // dateFormats: [{period:'fff',format:'JJ:NN:SS.QQQ'},
-      // {period:'ss',format:'JJ:NN:SS.QQQ'},
-      // {period:'mm',format:'JJ:NN'},
-      // {period:'hh',format:'JJ:NN'},
-      // {period:'DD',format:'MMM DD'},
-      // {period:'WW',format:'MMM DD'},
-      // {period:'MM',format:'MMM'},
-      // {period:'YYYY',format:'YYYY'}],
-      // groupToPeriods: ['fff', 'ss']
+      minPeriod: 'fff'
     },
 
     chartCursor: {
@@ -143,37 +134,6 @@ function createChart() {
         showBalloon: false
       }
     ],
-    // periodSelector: {
-    //   position: "bottom",
-    //   periods: [ {
-    //     period: "ss",
-    //     count: 1,
-    //     label: "1 sec"
-    //   }, {
-    //     period: "ss",
-    //     count: 100,
-    //     label: "100 sec"
-    //   }, {
-    //     period: "DD",
-    //     count: 10,
-    //     label: "10 days"
-    //   }, {
-    //     period: "MM",
-    //     selected: true,
-    //     count: 1,
-    //     label: "1 month"
-    //   }, {
-    //     period: "YYYY",
-    //     count: 1,
-    //     label: "1 year"
-    //   }, {
-    //     period: "YTD",
-    //     label: "YTD"
-    //   }, {
-    //     period: "MAX",
-    //     label: "MAX"
-    //   } ]
-    // },
     'dataProvider': []
   } );
 }
@@ -204,21 +164,26 @@ function fillItems(items, div) {
 }
 
 chart.addListener('rollOverGraphItem', event => {
-  const booksDiv = $('#books');
+  const booksDiv = $('#booksWrapper');
   booksDiv.empty();
-  const books = event.item.dataContext.books;
-  const mics = getMics(books);
+  const tradeId = event.item.dataContext.tradeId;
+  fetch('/ws/data?tradeId=' + tradeId)
+  .then(response => response.json())
+  .then(data => {
+    const books = data.books;
+    const keys = getKeys(books);
 
-  books.forEach(book => {
-    const index = mics[book.mic + book.pair];
-    const bookDiv = addNode(booksDiv, `book${index}`);
-    addNode(bookDiv, 'header', `MARKET ${index} - ${book.mic}`);
-    const asksDiv = addNode(bookDiv, 'asks');
-    const bidsDiv = addNode(bookDiv, 'bids');
-    addNode(asksDiv, 'header', 'Sell side');
-    addNode(bidsDiv, 'header', 'Buy side');
-    fillItems(book.sellSide, asksDiv);
-    fillItems(book.buySide, bidsDiv);
+    books.forEach(book => {
+      const index = keys[getKey(book)];
+      const bookDiv = addNode(booksDiv, `book${index}`);
+      addNode(bookDiv, 'header', `MARKET ${index} - ${book.mic}`);
+      const asksDiv = addNode(bookDiv, 'asks');
+      const bidsDiv = addNode(bookDiv, 'bids');
+      addNode(asksDiv, 'header', 'Sell side');
+      addNode(bidsDiv, 'header', 'Buy side');
+      fillItems(book.sellSide, asksDiv);
+      fillItems(book.buySide, bidsDiv);
+    });
   });
 });
 
@@ -227,16 +192,20 @@ chart.addListener('rendered', () => {
   loader.hide();
 });
 
-function getMics(books) {
-  let [mic1, mic2] = books.map(book => book.mic + book.pair);
-  const mics = {};
+function getKeys(books) {
+  let [key1, key2] = books.map(book => getKey(book));
+  const keys = {};
 
-  if (mic1 < mic2)
-    [mic1, mic2] = [mic2, mic1];
+  if (key1 < key2)
+    [key1, key2] = [key2, key1];
 
-  mics[mic1] = 1;
-  mics[mic2] = 2;
-  return mics;
+  keys[key1] = 1;
+  keys[key2] = 2;
+  return keys;
+}
+
+function getKey({mic, pair}) {
+  return mic + pair;
 }
 
 class Viewer {
@@ -264,51 +233,73 @@ class Viewer {
     chart.validateData();
   }
 
-  start() {
-    $('#batches select').change(event => {
-      window.location.href = window.location.origin + '?batchId=' + $(event.target).find('option:selected').attr('batchId');
-    });
+  startUpdate() {
+    this.intervalId = setInterval(() => {
+      const updateRequestObject = {
+        type: 'update',
+        nonce: this.nonce,
+        batchId: this.batchId
+      };
 
+      this.ws.send(JSON.stringify(updateRequestObject));
+    }, 1000);
+  }
+
+  stopUpdate() {
+    clearInterval(this.intervalId);
+  }
+
+  start() {
     this.batchId = $('#chart').attr('batchId');
     const uri = window.location.origin.replace('http', 'ws');
-    const ws = new WebSocket(uri + '/ws/data');
+    this.ws = new WebSocket(uri + '/ws/data');
 
-    ws.onopen = () => {
+    this.ws.onopen = () => {
       const historyRequestObject = {
         type: 'history',
         batchId: this.batchId
       };
-      ws.send(JSON.stringify(historyRequestObject));
+      this.ws.send(JSON.stringify(historyRequestObject));
 
-      this.intervalId = setInterval(() => {
-        const updateRequestObject = {
-          type: 'update',
-          nonce: this.nonce,
-          batchId: this.batchId
-        };
-
-        ws.send(JSON.stringify(updateRequestObject));
-      }, 1000);
+      if (this.update)
+        this.startUpdate();
     };
 
-    ws.onmessage = event => {
+    this.ws.onmessage = event => {
       const data = JSON.parse(event.data);
       this.updateChart(data.chartData);
       this.nonce = data.nonce;
       this.batchId = data.batchId;
     };
 
-    ws.onclose = () => {
-      clearInterval(this.intervalId);
+    this.ws.onclose = () => {
+      this.stopUpdate();
       this.start();
     };
 
-    ws.onerror = event => {
+    this.ws.onerror = event => {
       console.log(event);
     };
+  }
+
+  init() {
+    $('#batches select').change(event => {
+      window.location.href = window.location.origin + '?batchId=' + $(event.target).find('option:selected').attr('batchId');
+    });
+
+    this.update = false;
+    const updateButton = $('#update');
+    updateButton.text('update');
+    updateButton.click(() => {
+      this.update = !this.update;
+      updateButton.text(this.update ? 'stop' : 'update');
+      this.update ? this.startUpdate() : this.stopUpdate();
+    });
+
+    this.start();
   }
 }
 
 const viewer = new Viewer(chart);
 
-$(document).ready(() => viewer.start());
+$(document).ready(() => viewer.init());

@@ -33,6 +33,13 @@ module.exports = (model, pgp) => {
       'SELECT batch_id FROM trades GROUP BY batch_id ORDER BY batch_id DESC'
     ).then(rows => {
       return rows ? rows.map(row => row.batch_id) : [];
-    })
+    }),
+
+    getBooks: tradeId => {
+      return model.oneOrNone(
+        'SELECT books FROM trades WHERE id = $1',
+        [tradeId]
+      ).then(row => row.books);
+    }
   };
 };

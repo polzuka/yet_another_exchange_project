@@ -1,0 +1,23 @@
+[
+    {
+        "mic": "BITMEX",
+        "pair": "XBT_Z17",
+        "apiKey": "",
+        "apiSecret": "",
+        "depth": 50
+    },
+    {
+        "mic": "BITMEX",
+        "pair": "XBT_USD",
+        "apiKey": "",
+        "apiSecret": "",
+        "depth": 50
+    },
+    {
+      "mic": "POLONIEX",
+      "pair": "USDT_BTC",
+      "apiKey": "",
+      "apiSecret": "",
+      "depth": 50
+    }
+]

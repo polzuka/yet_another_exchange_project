@@ -1,13 +1,4 @@
 {
-  "CEX_KEY": "X0ZSG1wcxSjmS0us2EUQlICcyL8",
-  "CEX_SECRET": "xeA2v57AyT2QUhPTlo0VIxDHI",
-
-  "BITFINEX_KEY": "ikLE5S058B4erAO3vDF3Dr3mFmOVO50ariQp3Z8akNb",
-  "BITFINEX_SECRET": "EHvkzxzAPIpOuIMOY0RRpmObsTvx31J26rgnXB24z8T",
-
-  "POLONIEX_KEY": "KEY",
-  "POLONIEX_SECRET": "SECRET",
-
   "DB_USER": "market",
   "DB_PASSWORD": "market",
   "DB_NAME": "market",
