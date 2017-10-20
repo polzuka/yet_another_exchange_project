@@ -1,8 +1,10 @@
 'use strict';
 
 const crypto = require('crypto');
-const WebSocket = require('ws');
+const request = require('request-promise');
 const SortedMap = require('collections/sorted-map');
+const WebSocket = require('ws');
+
 const Connector = require('./connector');
 const ConnectorLoggingContainer = require('../logger');
 
@@ -265,6 +267,53 @@ class CexConnector extends Connector {
     data.data.forEach(trade => {
       this.emit('trade',  this.__normalizeTradeInfo(trade));
     });
+  }
+
+  async __requestHistory(tid) {
+    const url = (`https://cex.io/api/trade_history/${this.splittedPair[0]}/${this.splittedPair[1]}/` + (tid ? `?since=${tid}` : ''));
+    logger.debug("URL: " + url);
+    const resp = await request.get(url);
+
+    return JSON.parse(resp);
+  }
+
+  async getTradeHistory(period) {
+    const now = Math.trunc(Date.now() / 1000);
+    const dtFrom = now - period;
+    const trades = [];
+
+    let ts = now;
+    let tid = 0;
+
+    // Будем вытаскивать историю до тех пор, пока не вытащим за весь период
+    while (ts >= dtFrom) {
+      logger.debug(`ts: ${ts} dtFrom: ${dtFrom}`);
+      const trd = await this.__requestHistory(tid);
+
+      // Если timestamp уже раньше, чем надо, то хорош
+      trd.every(t => {
+        ts = parseInt(t.date);
+
+        if (ts < dtFrom)
+          return false;
+
+        trades.push({
+          mic: this.constructor.mic,
+          pair: this.pair,
+          side: t.type.toUpperCase(),
+          price: Number(t.price),
+          amount: Number(t.amount),
+          ts: ts
+        });
+
+        tid = parseInt(t.tid);
+        return true;
+      });
+
+      tid -= 1000;
+    }
+
+    return trades;
   }
 }
 
