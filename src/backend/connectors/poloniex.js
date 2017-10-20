@@ -3,6 +3,7 @@
 const autobahn = require('autobahn');
 const poloniex = require('@you21979/poloniex.com');
 const SortedMap = require('collections/sorted-map');
+const request = require('request-promise');
 const WebSocket = require('ws');
 
 const Connector = require('./connector');
@@ -74,8 +75,12 @@ class PoloniexConnector extends Connector {
     if (data.length == 1 && data[0] === 1010)
       return;
 
-    if (data.length == 2 && data[1] == 0) {
-      return this.__onUnsubscribe();
+    if (data.length == 2) {
+      if (data[1] == 0)
+        return this.__onUnsubscribe();
+
+      if (data[1] == 2)
+        return;
     }
 
     // logger.info(message);
@@ -83,6 +88,7 @@ class PoloniexConnector extends Connector {
 
     // Если пришел не следующий seq номер, то переподписываемся на канал
     if (this.seq && seq != this.seq + 1) {
+      logger.debug("DATA: " + message);
       logger.debug("Invalid sequence number. Current:" + this.seq + " got: " + seq + " Resubscribing");
       this.seq = 0;
       this.ws.close();
@@ -176,6 +182,35 @@ class PoloniexConnector extends Connector {
 
   __sendRequest(data) {
     this.ws.send(JSON.stringify(data));
+  }
+
+  async getTradeHistory(period) {
+    const now = Math.trunc(Date.now() / 1000);
+    const from = now - period;
+    const trades = [];
+    const url = `https://api.poloniex.com/public?command=returnTradeHistory&currencyPair=${this.pair}&start=${from}&end=${now}`;
+    
+    return new Promise((resolve, reject) => {
+      request(url)
+        .then(response => {
+          const res = JSON.parse(response);
+          res.forEach(t => {
+            trades.push({
+              mic: this.constructor.mic,
+              pair: this.pair,
+              side: t.type.toUpperCase(),
+              ts: Date.parse(t.date),
+              amount: Number(t.amount),
+              price: Number(t.rate)
+            });
+          });
+
+          resolve(trades);
+        })
+        .catch(err => {
+          reject(err);
+        })
+    });
   }
 }
 

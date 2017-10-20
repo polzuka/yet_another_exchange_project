@@ -65,13 +65,8 @@ class Connector extends EventEmitter {
     });
   }
 
-  getBook() {
-    return new Promise(resolve => {
-      if (this.isSynchronized)
-        return resolve(this.__normalizeBookInfo(this.book));
-      this.once('synchronized', () => resolve(this.__normalizeBookInfo(this.book)));
-    });
-  }
+  // Вовзвращает историю сделок за period секунд от текущего момента
+  getTradeHistory(period) {}
 }
 
 module.exports = Connector;
