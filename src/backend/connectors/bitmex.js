@@ -2,6 +2,7 @@
 
 const WebSocket = require('ws');
 const SortedMap = require('collections/sorted-map');
+const request = require('request-promise');
 const Connector = require('./connector');
 const ConnectorLoggingContainer = require('../logger');
 
@@ -164,6 +165,70 @@ class BitmexConnector extends Connector {
     data.data.forEach(trade => {
       this.emit('trade',  this.__normalizeTradeInfo(trade));
     });
+  }
+
+  async __requestHistory(from, to) {
+    logger.debug(`from: ${from} to: ${to}`);
+    const dtFrom = (new Date(from)).toISOString();
+    const dtTo = (new Date(to)).toISOString();
+    const filter = encodeURIComponent(`{"startTime":"${dtFrom}","endTime":"${dtTo}"}`);
+    const url = `https://www.bitmex.com/api/v1/trade?symbol=${this.splittedPair[0]}${this.splittedPair[1]}&filter=${filter}`;
+    const resp = await request.get(url);
+
+    return JSON.parse(resp);
+  }
+
+  async __sleep(duration) {
+    return new Promise(resolve => {
+      setTimeout(resolve, duration);
+    });
+  }
+
+  async getTradeHistory(period) {
+    const trades = [];
+    const now = Date.now();
+    let from = now - period * 1000;
+
+    while (from < now) {
+      let history = [];
+
+      while (true) {
+        try {
+          history = await this.__requestHistory(from, now);
+          break;
+        }
+        catch(e) {
+          if (e.name == 'StatusCodeError' && e.statusCode == 429) {
+            logger.debug("Rate limit exceeded. Sleeping...");
+            await this.__sleep(1500);
+          }
+          else
+            throw e;
+        }
+      }
+
+      if (!history.length)
+        break;
+
+      history.every(t => {
+        const ts = (new Date(t.timestamp)).getTime();
+        trades.push({
+          mic: this.constructor.mic,
+          pair: this.pair,
+          side: t.side.toUpperCase(),
+          ts: (new Date(t.timestamp)).getTime(),
+          price: t.price,
+          amount: t.homeNotional
+        });
+
+        from = ts;
+        return ts <= now ? true : false;
+      });
+
+      from++;
+    }
+
+    return trades;
   }
 }
 
