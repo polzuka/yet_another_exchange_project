@@ -6,3 +6,4 @@ yaep.sublime-workspace
 *.log
 yarn.lock
 markets.json
+package-lock.json

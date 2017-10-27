@@ -271,7 +271,7 @@ class CexConnector extends Connector {
 
   async __requestHistory(tid) {
     const url = (`https://cex.io/api/trade_history/${this.splittedPair[0]}/${this.splittedPair[1]}/` + (tid ? `?since=${tid}` : ''));
-    logger.debug("URL: " + url);
+    // logger.debug("URL: " + url);
     const resp = await request.get(url);
 
     return JSON.parse(resp);
@@ -287,7 +287,7 @@ class CexConnector extends Connector {
 
     // Будем вытаскивать историю до тех пор, пока не вытащим за весь период
     while (ts >= dtFrom) {
-      logger.debug(`ts: ${ts} dtFrom: ${dtFrom}`);
+      // logger.debug(`ts: ${ts} dtFrom: ${dtFrom}`);
       const trd = await this.__requestHistory(tid);
 
       // Если timestamp уже раньше, чем надо, то хорош
@@ -314,6 +314,20 @@ class CexConnector extends Connector {
     }
 
     return trades;
+  }
+
+  async getHistory(period) {
+    const history = [];
+    const trades = await this.getTradeHistory(period);
+
+    trades.forEach(t => {
+      history.push({
+        ts: t.ts,
+        price: t.price
+      });
+    });
+
+    return history;
   }
 }
 
