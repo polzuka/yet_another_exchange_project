@@ -140,7 +140,7 @@ function createChart() {
 
 const chart = createChart();
 
-function addNode(parent, childClass, text) {
+function addNode (parent, childClass, text) {
   const childDiv = $('<div/>');
   childDiv.addClass(childClass);
   parent.append(childDiv);
@@ -148,7 +148,7 @@ function addNode(parent, childClass, text) {
   return childDiv;
 }
 
-function fillItems(items, div) {
+function fillItems (items, div) {
   const pricesDiv = addNode(div, 'prices');
   const amountsDiv = addNode(div, 'amounts');
   addNode(pricesDiv, 'header', 'Price');
@@ -168,23 +168,23 @@ chart.addListener('rollOverGraphItem', event => {
   booksDiv.empty();
   const tradeId = event.item.dataContext.tradeId;
   fetch('/ws/data?tradeId=' + tradeId)
-  .then(response => response.json())
-  .then(data => {
-    const books = data.books;
-    const keys = getKeys(books);
+    .then(response => response.json())
+    .then(data => {
+      const books = data.books;
+      const keys = getKeys(books);
 
-    books.forEach(book => {
-      const index = keys[getKey(book)];
-      const bookDiv = addNode(booksDiv, `book${index}`);
-      addNode(bookDiv, 'header', `MARKET ${index} - ${book.mic}`);
-      const asksDiv = addNode(bookDiv, 'asks');
-      const bidsDiv = addNode(bookDiv, 'bids');
-      addNode(asksDiv, 'header', 'Sell side');
-      addNode(bidsDiv, 'header', 'Buy side');
-      fillItems(book.sellSide, asksDiv);
-      fillItems(book.buySide, bidsDiv);
+      books.forEach(book => {
+        const index = keys[getKey(book)];
+        const bookDiv = addNode(booksDiv, `book${index}`);
+        addNode(bookDiv, 'header', `MARKET ${index} - ${book.mic}`);
+        const asksDiv = addNode(bookDiv, 'asks');
+        const bidsDiv = addNode(bookDiv, 'bids');
+        addNode(asksDiv, 'header', 'Sell side');
+        addNode(bidsDiv, 'header', 'Buy side');
+        fillItems(book.sellSide, asksDiv);
+        fillItems(book.buySide, bidsDiv);
+      });
     });
-  });
 });
 
 chart.addListener('rendered', () => {
@@ -192,7 +192,7 @@ chart.addListener('rendered', () => {
   loader.hide();
 });
 
-function getKeys(books) {
+function getKeys (books) {
   let [key1, key2] = books.map(book => getKey(book));
   const keys = {};
 
@@ -204,22 +204,27 @@ function getKeys(books) {
   return keys;
 }
 
-function getKey({mic, pair}) {
+function getKey ({mic, pair}) {
   return mic + pair;
 }
 
 class Viewer {
-  constructor(chart) {
+  constructor (chart) {
     this.chart = chart;
   }
 
-  updateChart(data) {
+  updateChart (data) {
     // Если ничего не пришло, ничего не делаем
     if (!data.length)
       return;
 
     if (chart.dataProvider.length) {
       data.forEach(trade => {
+        // Тут нельзя просто приклеить новые данные, 
+        // т.к. с некоторых бирж данные приходят с опозданием,
+        // и возникают ситуации, при которых данные с более ранним временем 
+        // находятся в списке правее, чем данные с более поздним временем.
+        // Короче, график ломается.
         for (let i = chart.dataProvider.length - 1; i >= 0; i--) {
           if (chart.dataProvider[i].date < trade.date) {
             chart.dataProvider.splice(i + 1, 0, trade);
@@ -230,14 +235,15 @@ class Viewer {
     } else
       chart.dataProvider = data;
 
+    // Перерисовка графика
     chart.validateData();
   }
 
-  startUpdate() {
+  startUpdate () {
     this.intervalId = setInterval(() => {
       const updateRequestObject = {
         type: 'update',
-        nonce: this.nonce,
+        lastLoadedId: this.lastLoadedId,
         batchId: this.batchId
       };
 
@@ -245,32 +251,64 @@ class Viewer {
     }, 1000);
   }
 
-  stopUpdate() {
+  stopUpdate () {
     clearInterval(this.intervalId);
   }
 
-  start() {
+  onMessage (event) {
+    const data = JSON.parse(event.data);
+    switch (data.type) {
+      case 'history': return this.onHistory(data);
+      case 'boundary': return this.onBoundary(data);
+      case 'update': return this.onUpdate(data);
+    }
+  }
+
+  onHistory (data) {
+    this.updateChart(data.chartData);
+    this.firstLoadedId = data.firstLoadedId;
+  }
+
+  onUpdate (data) {
+    this.updateChart(data.chartData);
+    this.lastLoadedId = data.lastLoadedId;
+  }
+
+  onBoundary (data) {
+    this.updateChart(data.chartData);
+    this.lastLoadedId = data.lastLoadedId;
+    this.batchId = data.batchId;
+
+    const historyRequestObject = {
+      type: 'history',
+      batchId: this.batchId,
+      limit: 10,
+      firstLoadedId: this.firstLoadedId
+    };
+    this.send(historyRequestObject);
+  }
+
+  send (data) {
+    this.ws.send(JSON.stringify(data));
+  }
+
+  start () {
     this.batchId = $('#chart').attr('batchId');
     const uri = window.location.origin.replace('http', 'ws');
     this.ws = new WebSocket(uri + '/ws/data');
 
     this.ws.onopen = () => {
-      const historyRequestObject = {
-        type: 'history',
+      const boundaryRequestObject = {
+        type: 'boundary',
         batchId: this.batchId
       };
-      this.ws.send(JSON.stringify(historyRequestObject));
+      this.send(boundaryRequestObject);
 
       if (this.update)
         this.startUpdate();
     };
 
-    this.ws.onmessage = event => {
-      const data = JSON.parse(event.data);
-      this.updateChart(data.chartData);
-      this.nonce = data.nonce;
-      this.batchId = data.batchId;
-    };
+    this.ws.onmessage = event => this.onMessage(event);
 
     this.ws.onclose = () => {
       this.stopUpdate();
@@ -282,7 +320,7 @@ class Viewer {
     };
   }
 
-  init() {
+  init () {
     $('#batches select').change(event => {
       window.location.href = window.location.origin + '?batchId=' + $(event.target).find('option:selected').attr('batchId');
     });

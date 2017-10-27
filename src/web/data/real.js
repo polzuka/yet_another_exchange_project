@@ -3,11 +3,11 @@
 const db = require('../../backend/db');
 const offset = new Date().getTimezoneOffset();
 
-function compareTradesByTs(a, b) {
+function compareTradesByTs (a, b) {
   return a.trade.ts - b.trade.ts;
 }
 
-function getKeys(books) {
+function getKeys (books) {
   let [key1, key2] = books.map(book => getKey(book));
   const keys = {};
 
@@ -19,11 +19,11 @@ function getKeys(books) {
   return keys;
 }
 
-function getKey({mic, pair}) {
+function getKey ({mic, pair}) {
   return mic + pair;
 }
 
-function getChartItem(tradeId, trade, books) {
+function getChartItem ({id, trade, books}) {
   const keys = getKeys(books.books);
   const i = keys[getKey(trade)];
 
@@ -33,7 +33,7 @@ function getChartItem(tradeId, trade, books) {
     // bulletSize: trade.amount * 10,
     bulletSize: 7,
     bullet: trade.side === 'SELL' ? 'triangleDown' : 'triangleUp',
-    tradeId
+    tradeId: id
   };
 
   chartItem[`price${i}`] = trade.price;
@@ -50,51 +50,78 @@ function getChartItem(tradeId, trade, books) {
   return chartItem;
 }
 
-async function getHistoryData(batchId) {
+async function getHistoryData (batchId, limit, oldFirstLoadedId) {
+  const rows = await db.trades.getBatchTradesHistory(batchId, limit, oldFirstLoadedId) || [];
+
+  const firstLoadedId = rows.length
+    ? rows[0].id
+    : undefined;
+
+  const chartData = rows
+    .sort(compareTradesByTs)
+    .map(trade => getChartItem(trade));
+
+  return {
+    type: 'history',
+    chartData,
+    firstLoadedId,
+  };
+}
+
+async function getBoundaryData (batchId) {
   if (batchId === undefined)
     batchId = await db.trades.getLastBatchId();
 
-  const rows = await db.trades.getBatchTrades(batchId) || [];
+  const [batchFirstTrade, batchLastTrade] = await Promise.all([
+    await db.trades.getBatchFirstTrade(batchId),
+    await db.trades.getBatchLastTrade(batchId)
+  ]);
 
-  const nonce = rows.length
-    ? rows[rows.length - 1].nonce
-    : 0;
+  const chartData = [];
+  if (batchFirstTrade)
+    chartData.push(getChartItem(batchFirstTrade));
+
+  if (batchLastTrade.id !== batchFirstTrade.id)
+    chartData.push(getChartItem(batchLastTrade));
+
+  const lastLoadedId = batchFirstTrade
+    ? batchFirstTrade.id
+    : undefined;
+
+  return {
+    type: 'boundary',
+    chartData,
+    batchId,
+    lastLoadedId
+  };
+}
+
+async function getUpdateData (batchId, oldLastLoadedId) {
+  const rows = await db.trades.getBatchTradesUpdates(batchId, oldLastLoadedId) || [];
+
+  const lastLoadedId = rows.length
+    ? rows[rows.length - 1].id
+    : oldLastLoadedId;
 
   const chartData = rows
     .sort(compareTradesByTs)
-    .map(({nonce, trade, books}) => getChartItem(nonce, trade, books));
+    .map(({id, trade, books}) => getChartItem(id, trade, books));
 
   return {
+    type: 'update',
     chartData,
-    nonce,
+    lastLoadedId,
     batchId
   };
 }
 
-async function getUpdateData(batchId, oldNonce) {
-  const rows = await db.trades.getBatchTrades(batchId, oldNonce) || [];
-
-  const nonce = rows.length
-    ? rows[rows.length - 1].nonce
-    : oldNonce;
-
-  const chartData = rows
-    .sort(compareTradesByTs)
-    .map(({nonce, trade, books}) => getChartItem(nonce, trade, books));
-
-  return {
-    chartData,
-    nonce,
-    batchId
-  };
-}
-
-async function getBooksData(tradeId) {
+async function getBooksData (tradeId) {
   const books = await db.trades.getBooks(tradeId);
   return books;
 }
 
 module.exports = {
+  getBoundaryData,
   getHistoryData,
   getUpdateData,
   getBooksData

@@ -4,14 +4,16 @@ const express = require('express');
 const {
   getHistoryData,
   getUpdateData,
+  getBoundaryData,
   getBooksData
 } = require('../data/real');
 const router = express.Router();
 
-async function getData(requestObject) {
+function getData (requestObject) {
   switch (requestObject.type) {
-    case 'history': return await getHistoryData(requestObject.batchId);
-    case 'update': return await getUpdateData(requestObject.batchId, requestObject.nonce);
+    case 'boundary': return getBoundaryData(requestObject.batchId);
+    case 'history': return getHistoryData(requestObject.batchId, requestObject.limit, requestObject.firstLoadedId);
+    case 'update': return getUpdateData(requestObject.batchId, requestObject.lastLoadedId);
     default: throw new Error(`Unknown type '${requestObject}'.`);
   }
 }
