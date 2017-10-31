@@ -172,7 +172,7 @@ class BitmexConnector extends Connector {
     const dtFrom = (new Date(from)).toISOString();
     const dtTo = (new Date(to)).toISOString();
     const filter = encodeURIComponent(`{"startTime":"${dtFrom}","endTime":"${dtTo}"}`);
-    const url = `https://www.bitmex.com/api/v1/trade?symbol=${this.splittedPair[0]}${this.splittedPair[1]}&filter=${filter}`;
+    const url = `https://www.bitmex.com/api/v1/trade?symbol=${this.splittedPair[0]}${this.splittedPair[1]}&filter=${filter}&count=500`;
     const resp = await request.get(url);
 
     return JSON.parse(resp);
@@ -229,6 +229,69 @@ class BitmexConnector extends Connector {
     }
 
     return trades;
+  }
+
+  async getBarHistory(period) {
+    const bars = [];
+    const now = Date.now();
+    let from = now - period * 1000;
+
+    const dtFrom = encodeURIComponent((new Date(from)).toISOString());
+    const dtTo = encodeURIComponent((new Date(now)).toISOString());
+    const filter = encodeURIComponent(`{"startTime":"${dtFrom}","endTime":"${dtTo}"}`);
+    const url = `https://www.bitmex.com/api/v1/trade/bucketed?binSize=1m&symbol=${this.splittedPair[0]}${this.splittedPair[1]}&columns=%5B%22timestamp%22%2C%20%22open%22%2C%20%22high%22%2C%20%22low%22%2C%20%22close%22%2C%20%22volume%22%5D&count=500&partial=true&reverse=false&startTime=${dtFrom}&endTime=${dtTo}`
+    let start = 1;
+
+    logger.debug(`dtFrom: ${dtFrom} dtTo: ${dtTo}`);
+    while (true) {
+      let history = [];
+
+      while (true) {
+        try {
+          const resp = await request.get(url + `&start=${start}`);
+          history = JSON.parse(resp);
+          break;
+        }
+        catch(e) {
+          if (e.name == 'StatusCodeError' && e.statusCode == 429) {
+            logger.debug("Rate limit exceeded. Sleeping...");
+            await this.__sleep(1500);
+          }
+          else
+            throw e;
+        }
+      }
+
+      if (!history.length)
+        break;
+
+      history.forEach(t => {
+        const ts = (new Date(t.timestamp)).getTime();
+        bars.push({
+          ts: (new Date(t.timestamp)).getTime(),
+          open: t.open,
+          close: t.close,
+          low: t.low,
+          high: t.high,
+          volume: t.volume
+        });
+      });
+
+      start += 500;
+    }
+
+    return bars;
+  }
+
+  async getHistory(period) {
+    const history = [];
+    const bars = await this.getBarHistory(period);
+
+    bars.forEach(b => {
+      history.push({ts: b.ts, price: b.close});
+    });
+
+    return history;
   }
 }
 

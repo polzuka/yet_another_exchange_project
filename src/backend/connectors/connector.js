@@ -27,7 +27,7 @@ class Connector extends EventEmitter {
     };
 
     // Если делать стакан глубиной depth, то он часто опустошается и приходится его переподгружать.
-    // Поэтому реальная глубина стакана будет depth <= realDepth <= maxDepth
+    // Поэто  му реальная глубина стакана будет depth <= realDepth <= maxDepth
     this.maxDepth = Math.round(this.depth * 1.1);
   }
 
@@ -66,7 +66,21 @@ class Connector extends EventEmitter {
   }
 
   // Вовзвращает историю сделок за period секунд от текущего момента
-  getTradeHistory(period) {}
+  async getTradeHistory(period) {
+    throw new Error("getTradeHistory() is not implemented");
+  }
+
+  // Вовзвращает историю минутных баров за period секунд от текущего момента
+  async getBarHistory(period) {
+    throw new Error("getBarHistory() is not implemented");
+  }
+
+  // Вовзвращает историю в виде времени и цены за period секунд от текущего момента
+  // Если биржа умеет возвращать историю сделок за достаточно большой период
+  // и достаточно быстро, то используется она, иначе история минутных баров
+  async getHistory(period) {
+    throw new Error("getHistory() is not implemented");
+  }
 }
 
 module.exports = Connector;
