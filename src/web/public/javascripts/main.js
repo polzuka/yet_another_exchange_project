@@ -6,7 +6,7 @@ require('../amcharts/plugins/export/export.min.js');
 require('../amcharts/themes/light.js');
 require('../stylesheets/main.css');
 
-function createChart() {
+function createChart () {
   return AmCharts.makeChart('chart', {
     type: 'serial',
     categoryField: 'date',
@@ -59,6 +59,7 @@ function createChart() {
     },
 
     graphs: [
+      // Цена первой биржи
       {
         bulletAlpha: 0,
         bulletBorderAlpha: 1,
@@ -76,6 +77,7 @@ function createChart() {
         title: 'MARKET 1',
         markerType: 'square'
       },
+      // Цена второй биржи
       {
         bulletAlpha: 0,
         bulletBorderAlpha: 1,
@@ -93,6 +95,7 @@ function createChart() {
         title: 'MARKET 2',
         markerType: 'square'
       },
+      // Сторона sell стакана первой биржи
       {
         id: 'g3',
         valueField: 'sell1',
@@ -103,6 +106,7 @@ function createChart() {
         bulletSize: 0,
         showBalloon: false
       },
+      // Сторона sell стакана второй биржи
       {
         id: 'g4',
         valueField: 'sell2',
@@ -113,6 +117,7 @@ function createChart() {
         bulletSize: 0,
         showBalloon: false
       },
+      // Сторона buy стакана первой биржи
       {
         id: 'g5',
         valueField: 'buy1',
@@ -123,6 +128,7 @@ function createChart() {
         bulletSize: 0,
         showBalloon: false
       },
+      // Сторона buy стакана второй биржи
       {
         id: 'g6',
         valueField: 'buy2',
@@ -132,10 +138,28 @@ function createChart() {
         lineColor: 'green',
         bulletSize: 0,
         showBalloon: false
+      },
+      // Самая мякотка
+      // То, чего вы никогда не увидите на графике. Но оно там есть
+      {
+        id: 'g7',
+        valueField: 'firstPrice1',
+        type: 'line',
+        fillAlphas: 0,
+        bulletSize: 0,
+        showBalloon: false
+      },
+      {
+        id: 'g8',
+        valueField: 'firstPrice2',
+        type: 'line',
+        fillAlphas: 0,
+        bulletSize: 0,
+        showBalloon: false
       }
     ],
     'dataProvider': []
-  } );
+  });
 }
 
 const chart = createChart();
@@ -187,9 +211,24 @@ chart.addListener('rollOverGraphItem', event => {
     });
 });
 
-chart.addListener('rendered', () => {
+chart.addListener('zoomed', event => {
+   console.log(event)
+});
+
+chart.addListener('dataUpdated', event => {
+  const data = event.chart.dataProvider;
+  console.log(data)
+
+  if (data.length === 0)
+    return;
+
   const loader = $('#loader');
   loader.hide();
+
+  // Индекс 1, потому что сделка с нулевым индексом - вспомогательная невидимая.
+  const firstDate = new Date(data[1].date);
+  const lastDate = new Date(data[data.length - 1].date);
+  event.chart.zoomToDates(firstDate, lastDate);
 });
 
 function getKeys (books) {

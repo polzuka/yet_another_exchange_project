@@ -50,6 +50,20 @@ function getChartItem ({id, trade, books}) {
   return chartItem;
 }
 
+function getFirstChartItem ({id, trade, books}) {
+  const keys = getKeys(books.books);
+  const i = keys[getKey(trade)];
+
+  const chartItem = {
+    date: new Date(trade.ts + offset * 60000),
+    volume: trade.amount,
+    tradeId: id
+  };
+
+  chartItem[`firstPrice${i}`] = trade.price;
+  return chartItem;
+}
+
 async function getHistoryData (batchId, limit, oldFirstLoadedId) {
   const rows = await db.trades.getBatchTradesHistory(batchId, limit, oldFirstLoadedId) || [];
 
@@ -79,7 +93,7 @@ async function getBoundaryData (batchId) {
 
   const chartData = [];
   if (batchFirstTrade)
-    chartData.push(getChartItem(batchFirstTrade));
+    chartData.push(getFirstChartItem(batchFirstTrade));
 
   if (batchLastTrade.id !== batchFirstTrade.id)
     chartData.push(getChartItem(batchLastTrade));
