@@ -64,21 +64,52 @@ function getFirstChartItem ({id, trade, books}) {
   return chartItem;
 }
 
-async function getHistoryData (batchId, limit, oldFirstLoadedId) {
+async function getHistoryData (batchId, limit, oldFirstLoadedId, requestedFirstDate) {
   const rows = await db.trades.getBatchTradesHistory(batchId, limit, oldFirstLoadedId) || [];
 
-  const firstLoadedId = rows.length
-    ? rows[0].id
-    : undefined;
+  if (rows.length === 0)
+    return {
+      type: 'history',
+      chartData: [],
+      firstLoadedId: oldFirstLoadedId,
+      requestedFirstDate,
+      complete: true
+    };
+
+
+  const firstLoadedId = rows[rows.length - 1].id;
 
   const chartData = rows
     .sort(compareTradesByTs)
     .map(trade => getChartItem(trade));
 
+  if (!requestedFirstDate)
+    return {
+      type: 'history',
+      chartData,
+      firstLoadedId,
+      requestedFirstDate,
+      complete: true
+    };
+
+  if (chartData[0].date > requestedFirstDate)
+    return {
+      type: 'history',
+      chartData,
+      firstLoadedId,
+      requestedFirstDate,
+      complete: false
+    };
+
+  const index = chartData.findIndex(item => item.date >= requestedFirstDate);
+  const truncatedChartData = chartData.slice(index);
+
   return {
     type: 'history',
-    chartData,
-    firstLoadedId,
+    chartData: truncatedChartData,
+    firstLoadedId: Math.min(...truncatedChartData.map(item => item.tradeId)),
+    requestedFirstDate,
+    complete: true
   };
 }
 
@@ -99,7 +130,7 @@ async function getBoundaryData (batchId) {
     chartData.push(getChartItem(batchLastTrade));
 
   const lastLoadedId = batchFirstTrade
-    ? batchFirstTrade.id
+    ? chartData[chartData.length - 1].tradeId
     : undefined;
 
   return {

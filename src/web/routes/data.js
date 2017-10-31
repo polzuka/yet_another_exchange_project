@@ -12,7 +12,7 @@ const router = express.Router();
 function getData (requestObject) {
   switch (requestObject.type) {
     case 'boundary': return getBoundaryData(requestObject.batchId);
-    case 'history': return getHistoryData(requestObject.batchId, requestObject.limit, requestObject.firstLoadedId);
+    case 'history': return getHistoryData(requestObject.batchId, requestObject.limit, requestObject.firstLoadedId, requestObject.requestedFirstDate);
     case 'update': return getUpdateData(requestObject.batchId, requestObject.lastLoadedId);
     default: throw new Error(`Unknown type '${requestObject}'.`);
   }

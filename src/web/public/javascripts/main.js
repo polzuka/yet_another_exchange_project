@@ -158,7 +158,7 @@ function createChart () {
         showBalloon: false
       }
     ],
-    'dataProvider': []
+    dataProvider: []
   });
 }
 
@@ -212,12 +212,31 @@ chart.addListener('rollOverGraphItem', event => {
 });
 
 chart.addListener('zoomed', event => {
-   console.log(event)
+  event.chart.lastZoomed = event;
+});
+
+chart.addListener('rendered', event => {
+  event.chart.chartDiv.addEventListener('mouseup', () => {
+    console.log('mouse up')
+    if (!event.chart.mouseIsDown)
+      return;
+    console.log(event.chart.lastZoomed)
+    event.chart.mouseIsDown = false;
+    const zoomedEvent = event.chart.lastZoomed;
+
+    const requestedFirstDate = new Date(zoomedEvent.startDate).getTime();
+    event.chart.viewer.getHistory(requestedFirstDate);
+  });
 });
 
 chart.addListener('dataUpdated', event => {
+  // set up generic mouse events
+  if (event.chart.chartScrollbar.set) {
+    const sb = event.chart.chartScrollbar.set.node;
+    sb.addEventListener('mousedown', event.chart.mouseIsDown = true);
+  }
+
   const data = event.chart.dataProvider;
-  console.log(data)
 
   if (data.length === 0)
     return;
@@ -250,6 +269,7 @@ function getKey ({mic, pair}) {
 class Viewer {
   constructor (chart) {
     this.chart = chart;
+    chart.viewer = this;
   }
 
   updateChart (data) {
@@ -278,16 +298,43 @@ class Viewer {
     chart.validateData();
   }
 
-  startUpdate () {
-    this.intervalId = setInterval(() => {
-      const updateRequestObject = {
-        type: 'update',
-        lastLoadedId: this.lastLoadedId,
-        batchId: this.batchId
-      };
+  getUpdate () {
+    const updateRequestObject = {
+      type: 'update',
+      lastLoadedId: this.lastLoadedId,
+      batchId: this.batchId
+    };
+    console.log(updateRequestObject);
+    this.ws.send(JSON.stringify(updateRequestObject));
+  }
 
-      this.ws.send(JSON.stringify(updateRequestObject));
-    }, 1000);
+  getHistory (requestedFirstDate) {
+    console.log('getHistory')
+    if (this.firstLoadedId === undefined)
+      return;
+
+    const historyRequestObject = {
+      type: 'history',
+      batchId: this.batchId,
+      limit: 10,
+      firstLoadedId: this.firstLoadedId,
+      requestedFirstDate
+    };
+    console.log(historyRequestObject);
+    this.send(historyRequestObject);
+  }
+
+  getBoundary () {
+    const boundaryRequestObject = {
+      type: 'boundary',
+      batchId: this.batchId
+    };
+    console.log(boundaryRequestObject);
+    this.send(boundaryRequestObject);
+  }
+
+  startUpdate () {
+    this.intervalId = setInterval(() => this.getUpdate(), 1000);
   }
 
   stopUpdate () {
@@ -304,27 +351,27 @@ class Viewer {
   }
 
   onHistory (data) {
+    console.log(data);
     this.updateChart(data.chartData);
     this.firstLoadedId = data.firstLoadedId;
+    if (data.complete)
+      return;
+    this.getHistory(data.requestedFirstDate);
   }
 
   onUpdate (data) {
+    console.log(data);
     this.updateChart(data.chartData);
     this.lastLoadedId = data.lastLoadedId;
   }
 
   onBoundary (data) {
+    console.log(data);
     this.updateChart(data.chartData);
     this.lastLoadedId = data.lastLoadedId;
+    this.firstLoadedId = data.lastLoadedId;
     this.batchId = data.batchId;
-
-    const historyRequestObject = {
-      type: 'history',
-      batchId: this.batchId,
-      limit: 10,
-      firstLoadedId: this.firstLoadedId
-    };
-    this.send(historyRequestObject);
+    this.getHistory();
   }
 
   send (data) {
@@ -337,11 +384,7 @@ class Viewer {
     this.ws = new WebSocket(uri + '/ws/data');
 
     this.ws.onopen = () => {
-      const boundaryRequestObject = {
-        type: 'boundary',
-        batchId: this.batchId
-      };
-      this.send(boundaryRequestObject);
+      this.getBoundary();
 
       if (this.update)
         this.startUpdate();

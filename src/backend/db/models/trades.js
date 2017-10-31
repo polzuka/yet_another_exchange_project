@@ -30,9 +30,7 @@ module.exports = (model, pgp) => {
     ),
 
     getBatchTradesHistory: (batchId, limit, firstLoadedId) => {
-      return firstLoadedId === undefined
-        ? model.manyOrNone('SELECT trade, books, id FROM trades WHERE batch_id = $1 ORDER BY id DESC LIMIT $2', [batchId, limit])
-        : model.manyOrNone('SELECT trade, books, id FROM trades WHERE batch_id = $1 AND id < $2 ORDER BY id DESC LIMIT $3', [batchId, firstLoadedId, limit]);
+      return model.manyOrNone('SELECT trade, books, id FROM trades WHERE batch_id = $1 AND id < $2 ORDER BY id DESC LIMIT $3', [batchId, firstLoadedId, limit]);
     },
 
     getBatches: () => model.manyOrNone(
